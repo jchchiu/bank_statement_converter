@@ -1,0 +1,7 @@
+# Editable install with no version control (bank_statement_converter==0.1.1)
+PyMuPDF==1.26.0
+PyQt5==5.15.11
+PyQt5-Qt5==5.15.2
+PyQt5_sip==12.17.0
+python-dateutil==2.9.0.post0
+six==1.17.0
