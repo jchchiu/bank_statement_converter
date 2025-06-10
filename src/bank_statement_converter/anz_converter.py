@@ -1,6 +1,6 @@
 import fitz
 import os.path
-from .utils import export_to_csv, is_datetime, reformat_date, csv_rename
+from .utils import export_to_csv, is_datetime, reformat_date, csv_rename, remove_annots
 
 """
 Read original file and process page 0. If rotated, make an intermediate,
@@ -39,6 +39,8 @@ def get_transactions(pdf_path: str):
     end_flag = False
               
     for page in doc[1:]:
+        remove_annots(page)
+        
         # ADAPTED FROM: https://github.com/pymupdf/PyMuPDF/discussions/1842
         paths = page.get_drawings()  # extract page's line art
 
@@ -156,6 +158,6 @@ def get_transactions(pdf_path: str):
 
 def convert_anz(pdf_path: str):
     data = get_transactions(pdf_path)
-    csv_name = (os.path.splitext(os.path.basename(pdf_path))[0] + '.csv').replace(' ', '_')
+    csv_name = (os.path.splitext(os.path.basename(pdf_path))[0] + '.csv')
     export_to_csv(data, (os.path.dirname(pdf_path) + '/' + csv_name))
     return csv_rename(pdf_path)

@@ -130,6 +130,6 @@ def get_transactions(text):
         
 def convert_cba(pdf_path: str):
     data = get_transactions(text_from_area(pdf_path))
-    csv_name = (os.path.splitext(os.path.basename(pdf_path))[0] + '.csv').replace(' ', '_')
+    csv_name = (os.path.splitext(os.path.basename(pdf_path))[0] + '.csv')
     export_to_csv(data, (os.path.dirname(pdf_path) + '/' + csv_name))
     return csv_rename(pdf_path)

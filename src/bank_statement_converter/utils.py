@@ -41,4 +41,10 @@ def reformat_date(date: str, output_format: str = "%d/%m/%y") -> str | None:
     return dt.strftime(output_format)
 
 def csv_rename(pdf_path: str):
-    return str(Path(pdf_path).with_suffix(".csv")).replace(' ', '_')
+    return str(Path(pdf_path).with_suffix(".csv"))
+
+def remove_annots(page):
+    if page.annots():
+        for annot in page.annots():
+            page.delete_annot(annot)
+    return page
