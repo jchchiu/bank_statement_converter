@@ -46,46 +46,50 @@ def diff_balances(doc):
     text = page.get_text(clip=rect) + "\n"
     lines = text.split('\n')
     
-    balance = None
-    balance_flag = False
-    closing_balance = None
-    closing_flag = False
+    credits = None
+    credits_flag = False
+    debits = None
+    debits_flag = False
     diff_amount = 0
     
     for line in lines:
 
         if not line.strip():
             continue
-        # To get the opening balance
-        if line == 'Opening Balance':
-            balance_flag = True
+        # Get total credits [0] and debits [1] and their difference [2] to compare to running amounts calculated
+        # Difference between opening and closing balance can be different than running amount
+        if line == 'Total Credits':
+            credits_flag = True
             continue
-        if balance_flag == True:
-            balance = round(float(line[1:-2].replace(',', '').strip()), 2)
-            print(f"Obtained opening balance: ${balance}")
-            balance_flag = False
+        if credits_flag == True:
+            credits = round(float(line[1:].replace(',', '').strip()), 2)
+            print(f"Obtained total credits: ${credits}")
+            credits_flag = False
             continue
-        if line == 'Closing Balance':
-            closing_flag = True
+        if line == 'Total Debits':
+            debits_flag = True
             continue
-        if closing_flag == True:
-            closing_balance = round(float(line[1:-2].replace(',', '').strip()), 2)
-            print(f"Obtained closing balance: ${closing_balance}")
+        if debits_flag == True:
+            debits = -round(float(line[1:].replace(',', '').strip()), 2)
+            print(f"Obtained total debits: ${debits}")
             print(f"-------------------------------------------------")
-            diff_amount = round(closing_balance - balance, 2)
+            diff_amount = round(debits + credits, 2)
             break
     
-    return diff_amount
+    return (round(credits, 2), round(debits, 2), diff_amount)
 
 """Get the transactions"""
 def get_transactions(pdf_path: str):        
     doc = check_page_rotation(pdf_path)
     
-    diff_amount = diff_balances(doc)
+    amnt_checks = diff_balances(doc)
+    init_credits, init_debits, diff_amount = amnt_checks[0], amnt_checks[1], amnt_checks[2]
     
     comb_data = [['Date', 'Transaction Details', 'Amount']]
     running_amount = 0
     t_line = 0     
+    tot_credit = 0
+    tot_debit = 0
               
     for page in doc:
         # ADAPTED FROM: https://github.com/pymupdf/PyMuPDF/discussions/1842
@@ -143,6 +147,11 @@ def get_transactions(pdf_path: str):
                     if is_datetime(text, "%d %b %y"):
                         comb_data[t_line+1].append(reformat_date(text))
                         continue
+                    # If function stops working may be because final row too close to 'Important' line
+                    # This statement will include Important and adjust if change footer line as y-coord
+                    if is_datetime(text[:9], "%d %b %y") and (text[-9:] == 'Important'):
+                        comb_data[t_line+1].append(reformat_date(text[:9]))
+                        continue
                     else:
                         break
                 if j == 1:
@@ -155,6 +164,7 @@ def get_transactions(pdf_path: str):
                         amount_str = str(text.replace(',', '').replace('$', '').strip())
                         comb_data[t_line+1].append('-' + amount_str)
                         running_amount -= float(amount_str)
+                        tot_debit -= float(amount_str)
                         break
                     continue
                 if j == 3:
@@ -162,23 +172,24 @@ def get_transactions(pdf_path: str):
                         amount_str = str(text.replace(',', '').replace('$', '').strip())
                         comb_data[t_line+1].append(amount_str)
                         running_amount += float(amount_str)
+                        tot_credit += float(amount_str)
                         break
                     break
             t_line += 1
             
     comb_data_clean = [x for x in comb_data if x != []]
     print(f"Number of transactions: {len(comb_data_clean)}")
-        
-    if round(running_amount,2) == diff_amount:
-        print('Running balance and difference between opening and closing balance is equal.')
+            
+    if (round(running_amount, 2) == diff_amount) and (round(tot_credit, 2) == init_credits) and (round(tot_debit, 2) == init_debits):
+        print('Running balance and difference between total credits and total debits same.')
         print(f"-------------------------------------------------")
     else:
-        raise (ValueError(f"Running amount and difference in opening and closing balance do not match: {running_amount}, {diff_amount}"))
+        raise (ValueError(f"Running balance and difference between total credits and total debits do not match: {running_amount}, {diff_amount}"))
 
     return comb_data_clean
             
 def convert_nab(pdf_path: str):
     data = get_transactions(pdf_path)
-    csv_name = (os.path.splitext(os.path.basename(pdf_path))[0] + '.csv').replace(' ', '_')
+    csv_name = (os.path.splitext(os.path.basename(pdf_path))[0] + '.csv')
     export_to_csv(data, (os.path.dirname(pdf_path) + '/' + csv_name))
     return csv_rename(pdf_path)
