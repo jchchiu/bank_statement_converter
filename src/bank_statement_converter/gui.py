@@ -279,7 +279,7 @@ class PdfTab(QWidget):
         # clear all inputs
         self.le_pdf.clear()
         self.le_folder_pdf.clear()
-        self.chk_qif.setChecked(False)
+        self.chk_qif.setChecked(True)
 
         # clear results
         self.txt_log.clear()
@@ -495,6 +495,7 @@ class CsvTab(QWidget):
         self.le_folder_csv.clear()
         self.txt_log.clear()
         self.lst_out.clear()
+        self.chk_qif.setChecked(True)
         self.btn_conv_csv.setEnabled(True)
         self.btn_conv_folder.setEnabled(True)
         self.btn_reset.setEnabled(False)
