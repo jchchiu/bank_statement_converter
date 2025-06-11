@@ -5,5 +5,5 @@ from .wbc_converter import convert_wbc
 from .bank_detector import detect_bank
 from .csv2qif import csv_to_qif
 
-__version__ = "0.1.1"
+__version__ = "0.1.4"
 __all__ = ['convert_cba', 'convert_anz', 'convert_nab', 'convert_wbc', 'csv_to_qif', 'detect_bank']

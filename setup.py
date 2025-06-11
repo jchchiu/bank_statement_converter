@@ -2,15 +2,17 @@ from setuptools import setup, find_packages
 
 setup(
     name = 'bank_statement_converter',
-    version = '0.1.3',
+    version = '0.1.4',
     package_dir = {'':'src'},
     packages = find_packages('src'),
     install_requires = [
         'pymupdf>=1.26.0',
         'python-dateutil>=2.9.0.post0',
-        'PyQt5==5.15.11',
-        'PyQt5-Qt5==5.15.2',
-        'PyQt5_sip==12.17.0'
+        'PySide6==6.9.1',
+        'PySide6_Addons==6.9.1',
+        'PySide6_Essentials==6.9.1',
+        'shiboken6==6.9.1',
+        'QtPy==2.4.3'
     ],
     entry_points = {
         'console_scripts': [
