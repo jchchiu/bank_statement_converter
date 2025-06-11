@@ -22,8 +22,40 @@ def text_from_area(pdf_path: str):
         text += page.get_text(clip=rect) + "\n"
         
     return text
+
+# Function to return the range of the years in the statement period
+def statement_years(pdf_path: str):
+    doc = fitz.open(pdf_path)
+    rect = fitz.Rect(300,10,600,350)
+    page = doc[0]
+    remove_annots(page)
+    text = page.get_text(clip=rect) + "\n"
+    lines = text.split('\n')
+    years = ['2022', '2023', '2024', '2025', '2026', '2027']
+    period_flag = False
+    period_years = []
+    for line in lines:
+        if line == 'Period':
+            period_flag = True
+            continue
+        if period_flag:
+            for year in years:
+                if year in line:
+                    period_years.append(year)
+
+    return period_years
     
-def get_transactions(text):
+def get_transactions(pdf_path: str):
+    yr_rollover_flag = False
+    period_years = statement_years(pdf_path)
+    print(f"Number of year in the statement period: {len(period_years)}")
+    if len(period_years) == 1:
+        year = period_years[0]
+    else:
+        year = period_years[0]
+        yr_rollover_flag = True
+        
+    text = text_from_area(pdf_path)
     lines = text.split('\n')
     
     # Need this to get amount if line detection puts transaction and amount in same line
@@ -34,7 +66,6 @@ def get_transactions(text):
     new_datef = "%d-%b-%y"
     date_flag = False
     dates = []
-    year = ''
     
     transaction = ''
     transactions = []
@@ -50,10 +81,10 @@ def get_transactions(text):
         if not line.strip():
             continue
         
-        # To get the opening balance
+        # Year is not always in the same position with line 'OPENING BALANCE";
+        #  start of line could have day and month as well
         if line[-15:] == 'OPENING BALANCE':
             balance_flag = True
-            year = line[7:11]
             continue
         if balance_flag == True:
             running_balance = round(float(line[1:-2].replace(',', '').strip()), 2)
@@ -105,6 +136,11 @@ def get_transactions(text):
                 raise (ValueError(f"Running balance and given balance do not match: {running_balance}, {given_balance} \n \
                                     Find at line: {line}"))
         
+        # Checks the first instance of ' JAN ' and if year rollover flag is raised; if so then update year
+        if is_datetime(str(line[:6] + " " + year), date_format) and (line[2:7] == ' Jan ') and yr_rollover_flag:
+            year = period_years[1]
+            yr_rollover_flag = False
+            
         # Checks whether line is a date using datetime function; also adds start of transaction name
         if is_datetime(str(line[:6] + " " + year), date_format):
             dates.append((datetime.strptime((line[:6] + " " + year), date_format).strftime(new_datef)))
@@ -132,7 +168,7 @@ def get_transactions(text):
     return comb_data
         
 def convert_cba(pdf_path: str):
-    data = get_transactions(text_from_area(pdf_path))
+    data = get_transactions(pdf_path)
     csv_name = (os.path.splitext(os.path.basename(pdf_path))[0] + '.csv')
     export_to_csv(data, (os.path.dirname(pdf_path) + '/' + csv_name))
     return csv_rename(pdf_path)
