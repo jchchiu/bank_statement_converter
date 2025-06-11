@@ -29,7 +29,7 @@ class EmittingStream:
     def write(self, text):
         text = text.rstrip()
         if text:
-            self.signal.emit(text)
+            self.signal.emit(f"  {text}")
     def flush(self):
         pass
 
@@ -39,10 +39,11 @@ class PdfWorker(QObject):
     error    = Signal(str)
     finished = Signal(list)
 
-    def __init__(self, pdf_path, do_qif):
+    def __init__(self, pdf_path, do_qif, rm_csv):
         super().__init__()
         self.pdf_path = pdf_path
         self.do_qif   = do_qif
+        self.rm_csv   = rm_csv
 
     @Slot()
     def run(self):
@@ -52,12 +53,12 @@ class PdfWorker(QObject):
         sys.stderr = EmittingStream(self.log)
         outputs = []
         try:
-            print(f"Detecting bank for “{self.pdf_path}”…")
+            self.log.emit(f"--- {os.path.basename(self.pdf_path)} ---")
             bank = detect_bank(self.pdf_path)
             if not bank:
                 raise RuntimeError("Bank could not be detected")
-            print(f"Detected bank: {bank.upper()}")
-            print("-------------------------------------------------")
+            
+            self.log.emit(f"  Detected bank: {bank.upper()}")
 
             print("Converting to CSV…")
             if bank == 'cba':
@@ -70,15 +71,21 @@ class PdfWorker(QObject):
                 csv_path = convert_wbc(self.pdf_path)
             else:
                 raise RuntimeError(f"No converter for bank '{bank}'")
-            print(f"Created CSV: {csv_path}")
+            self.log.emit(f"  → CSV: {csv_path}")
             outputs.append(csv_path)
 
             if self.do_qif:
-                print("Converting CSV → QIF…")
+                self.log.emit("  Converting CSV → QIF…")
                 qif_path = csv_to_qif(csv_path)
-                print(f"Created QIF: {qif_path}")
+                self.log.emit(f"  → QIF: {qif_path}")
                 outputs.append(qif_path)
+                
+            if self.rm_csv:
+                self.log.emit("  Removing CSV files…")
+                os.remove(csv_path)
+                outputs.remove(csv_path)
 
+            self.log.emit(" ")
             self.finished.emit(outputs)
 
         except Exception as e:
@@ -93,10 +100,11 @@ class FolderWorker(QObject):
     error    = Signal(str)
     finished = Signal(list)
 
-    def __init__(self, folder, do_qif):
+    def __init__(self, folder, do_qif, rm_csv):
         super().__init__()
         self.folder = folder
         self.do_qif = do_qif
+        self.rm_csv = rm_csv
 
     @Slot()
     def run(self):
@@ -115,7 +123,6 @@ class FolderWorker(QObject):
                 raise RuntimeError("No PDFs found in folder")
 
             for pdf in pdfs:
-                self.log.emit(f" ")
                 self.log.emit(f"--- {os.path.basename(pdf)} ---")
                 bank = detect_bank(pdf)
                 if not bank:
@@ -143,6 +150,13 @@ class FolderWorker(QObject):
                     qif_path = csv_to_qif(csv_path)
                     self.log.emit(f"  → QIF: {qif_path}")
                     outputs.append(qif_path)
+                    
+                if self.rm_csv:
+                    self.log.emit("  Removing CSV files…")
+                    os.remove(csv_path)
+                    outputs.remove(csv_path)
+                    
+                self.log.emit(" ")
 
             self.finished.emit(outputs)
         except Exception as e:
@@ -169,6 +183,7 @@ class CsvWorker(QObject):
             print(f"Converting {self.csv_path} → QIF…")
             qif = csv_to_qif(self.csv_path)
             print(f"Created QIF: {qif}")
+            self.log.emit(" ")
             self.finished.emit([qif])
         except Exception as e:
             self.error.emit(str(e))
@@ -204,7 +219,9 @@ class CsvFolderWorker(QObject):
                 qif = csv_to_qif(csv_path)
                 self.log.emit(f"  → QIF: {qif}")
                 outputs.append(qif)
-
+                
+                self.log.emit(" ")
+            
             self.finished.emit(outputs)
         except Exception as e:
             self.error.emit(str(e))
@@ -228,6 +245,8 @@ class PdfTab(QWidget):
         
         self.chk_qif          = QCheckBox("Also generate QIF")
         self.chk_qif.setChecked(True)
+        self.rm_csv           = QCheckBox("Remove CSV after conversion")
+        self.rm_csv.setChecked(True)
         self.btn_reset        = QPushButton("Reset")
         self.btn_reset.setEnabled(False)
         self.btn_reset.clicked.connect(self.on_reset)
@@ -258,6 +277,7 @@ class PdfTab(QWidget):
         opts = QHBoxLayout()
         opts.addWidget(QLabel("Options:"))
         opts.addWidget(self.chk_qif)
+        opts.addWidget(self.rm_csv)
         opts.addStretch()
         opts.addWidget(self.btn_reset)
         v.addLayout(opts)
@@ -280,6 +300,7 @@ class PdfTab(QWidget):
         self.le_pdf.clear()
         self.le_folder_pdf.clear()
         self.chk_qif.setChecked(True)
+        self.rm_csv.setChecked(True)
 
         # clear results
         self.txt_log.clear()
@@ -313,7 +334,7 @@ class PdfTab(QWidget):
             return
         self._reset_ui_single()
         # start worker
-        self._start_pdf_worker(pdf, self.chk_qif.isChecked())
+        self._start_pdf_worker(pdf, self.chk_qif.isChecked(), self.rm_csv.isChecked())
 
     def on_convert_folder(self):
         fld = self.le_folder_pdf.text().strip()
@@ -322,7 +343,7 @@ class PdfTab(QWidget):
             return
         self._reset_ui_single()
         # start folder worker
-        self._start_folder_worker(fld, self.chk_qif.isChecked())
+        self._start_folder_worker(fld, self.chk_qif.isChecked(), self.rm_csv.isChecked())
 
     def _reset_ui_single(self):
         self.txt_log.clear()
@@ -330,9 +351,9 @@ class PdfTab(QWidget):
         self.btn_conv_pdf.setEnabled(False)
         self.btn_conv_folder.setEnabled(False)
 
-    def _start_pdf_worker(self, pdf, do_qif):
+    def _start_pdf_worker(self, pdf, do_qif, rm_csv):
         self.thread = QThread()
-        self.worker = PdfWorker(pdf, do_qif)
+        self.worker = PdfWorker(pdf, do_qif, rm_csv)
         self.worker.moveToThread(self.thread)
         self.thread.started.connect(self.worker.run)
         self.worker.log.connect(self.txt_log.append)
@@ -343,9 +364,9 @@ class PdfTab(QWidget):
         self.thread.finished.connect(self.thread.deleteLater)
         self.thread.start()
 
-    def _start_folder_worker(self, fld, do_qif):
+    def _start_folder_worker(self, fld, do_qif, rm_csv):
         self.thread = QThread()
-        self.worker = FolderWorker(fld, do_qif)
+        self.worker = FolderWorker(fld, do_qif, rm_csv)
         self.worker.moveToThread(self.thread)
         self.thread.started.connect(self.worker.run)
         self.worker.log.connect(self.txt_log.append)
@@ -495,7 +516,6 @@ class CsvTab(QWidget):
         self.le_folder_csv.clear()
         self.txt_log.clear()
         self.lst_out.clear()
-        self.chk_qif.setChecked(True)
         self.btn_conv_csv.setEnabled(True)
         self.btn_conv_folder.setEnabled(True)
         self.btn_reset.setEnabled(False)
