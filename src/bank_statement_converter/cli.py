@@ -6,6 +6,7 @@ from .cba_converter import convert_cba
 from .anz_converter import convert_anz
 from .nab_converter import convert_nab
 from .wbc_converter import convert_wbc
+from .ben_converter import convert_ben
 from .csv2qif       import csv_to_qif
 
 def pdf2csv_qif(pdf_path: str, do_qif: bool):
@@ -24,6 +25,8 @@ def pdf2csv_qif(pdf_path: str, do_qif: bool):
         csv_path = convert_anz(pdf_path)
     elif bank == 'wbc':
         csv_path = convert_wbc(pdf_path)
+    elif bank == 'ben':
+        csv_path = convert_ben(pdf_path)
     else:
         raise ValueError(f"No converter implemented for bank {bank!r}")
 
