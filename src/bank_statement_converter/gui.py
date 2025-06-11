@@ -14,6 +14,7 @@ from .cba_converter import convert_cba
 from .anz_converter import convert_anz
 from .nab_converter import convert_nab
 from .wbc_converter import convert_wbc
+from .ben_converter import convert_ben
 from .bank_detector import detect_bank
 from .csv2qif       import csv_to_qif
 
@@ -69,6 +70,8 @@ class PdfWorker(QObject):
                 csv_path = convert_anz(self.pdf_path)
             elif bank == 'wbc':
                 csv_path = convert_wbc(self.pdf_path)
+            elif bank == 'ben':
+                csv_path = convert_ben(self.pdf_path)
             else:
                 raise RuntimeError(f"No converter for bank '{bank}'")
             self.log.emit(f"  → CSV: {csv_path}")
@@ -138,6 +141,8 @@ class FolderWorker(QObject):
                     csv_path = convert_anz(pdf)
                 elif bank == 'wbc':
                     csv_path = convert_wbc(pdf)
+                elif bank == 'ben':
+                    csv_path = convert_ben(pdf)
                 else:
                     self.log.emit(f"  ERROR: no converter for '{bank}'")
                     continue
