@@ -1,27 +1,6 @@
 import fitz
 import os.path
-from .utils import export_to_csv, is_datetime, reformat_date, csv_rename, remove_annots
-
-"""
-Read original file and process page 0. If rotated, make an intermediate,
-unrotated page first to ease processing it
-"""
-def check_page_rotation(pdf_path: str):
-    src = fitz.open(pdf_path)  # original file
-    spage = src[0]
-    spage.clean_contents()  # make sure we have a clean PDF page source
-    rotation = spage.rotation  # check page rotation
-    if rotation != 0:
-        w, h = spage.rect.width, spage.rect.height
-        spage.set_rotation(0)  # set rotation to 0
-        doc = fitz.open()  # make intermediate PDF
-        page = doc.new_page(width=w, height=h)  # give a new page
-        # copy old page into it, reverting its rotation
-        page.show_pdf_page(page.rect, src, 0, rotate=-rotation)
-    else:  # not rotated
-        doc = src
-    return doc
-
+from .utils import export_to_csv, is_datetime, reformat_date, csv_rename, remove_annots, check_page_rotation
 
 """
 Get the transactions

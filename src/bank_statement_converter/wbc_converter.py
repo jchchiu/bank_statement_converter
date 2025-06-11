@@ -1,39 +1,6 @@
 import fitz
 import os.path
-from .utils import export_to_csv, is_datetime, reformat_date, csv_rename
-
-def clean_up_values(values):
-    """This removes drawings artifact coordinates.
-
-    Can be given a sorted list of floats. Will remove the larger one of any
-    two in sequence if it is closer than 3 to its predecessor.
-    """
-    for i in range(len(values) - 1, -1, -1):
-        if i == 0:  # reached start of list
-            continue
-        if values[i] - values[i - 1] <= 8:  # too close: remove larger one
-            values.pop(i)
-    return values
-
-"""
-Read original file and process page 0. If rotated, make an intermediate,
-unrotated page first to ease processing it
-"""
-def check_page_rotation(pdf_path: str):
-    src = fitz.open(pdf_path)  # original file
-    spage = src[0]
-    spage.clean_contents()  # make sure we have a clean PDF page source
-    rotation = spage.rotation  # check page rotation
-    if rotation != 0:
-        w, h = spage.rect.width, spage.rect.height
-        spage.set_rotation(0)  # set rotation to 0
-        doc = fitz.open()  # make intermediate PDF
-        page = doc.new_page(width=w, height=h)  # give a new page
-        # copy old page into it, reverting its rotation
-        page.show_pdf_page(page.rect, src, 0, rotate=-rotation)
-    else:  # not rotated
-        doc = src
-    return doc
+from .utils import export_to_csv, is_datetime, reformat_date, csv_rename, check_page_rotation, clean_up_values, remove_annots
 
 """Get the transactions"""
 def get_transactions(pdf_path: str):        
@@ -44,6 +11,7 @@ def get_transactions(pdf_path: str):
     t_line = 0     
               
     for page in doc:
+        remove_annots(page)
         # ADAPTED FROM: https://github.com/pymupdf/PyMuPDF/discussions/1842
         paths = page.get_drawings()  # extract page's line art
 

@@ -1,7 +1,7 @@
 import os.path
 import fitz
 from datetime import datetime
-from .utils import is_datetime, export_to_csv, csv_rename
+from .utils import is_datetime, export_to_csv, csv_rename, remove_annots
 
 # Function to extract text from a rectangular area on a PDF page
 def text_from_area(pdf_path: str):
@@ -12,10 +12,13 @@ def text_from_area(pdf_path: str):
     
     for page_number in range(doc.page_count):
         if page_number == 0:
+            page = doc[0]
+            remove_annots(page)
             rect0 = fitz.Rect(50,500,600,1200)
-            text += doc[0].get_text(clip=fitz.Rect(50,500,600,1200)) + "\n"
+            text += page.get_text(clip=fitz.Rect(50,500,600,1200)) + "\n"
             continue
         page = doc[page_number]
+        remove_annots(page)
         text += page.get_text(clip=rect) + "\n"
         
     return text
