@@ -1,12 +1,14 @@
 import sys, os
-from PyQt5.QtCore    import QObject, QThread, pyqtSignal, pyqtSlot, QUrl
-from PyQt5.QtWidgets import (
+os.environ['QT_API'] = 'pyside6'
+from qtpy import QtGui, QtWidgets, QtCore
+from qtpy.QtCore    import QObject, QThread, Signal, Slot, QUrl
+from qtpy.QtWidgets import (
     QApplication, QMainWindow, QWidget,
     QVBoxLayout, QHBoxLayout, QLabel, QLineEdit, QPushButton,
     QTextEdit, QCheckBox, QListWidget, QListWidgetItem,
     QFileDialog, QMessageBox, QTabWidget
 )
-from PyQt5.QtGui     import QDesktopServices
+from qtpy.QtGui     import QDesktopServices
 
 from .cba_converter import convert_cba
 from .anz_converter import convert_anz
@@ -33,16 +35,16 @@ class EmittingStream:
 
 
 class PdfWorker(QObject):
-    log      = pyqtSignal(str)
-    error    = pyqtSignal(str)
-    finished = pyqtSignal(list)
+    log      = Signal(str)
+    error    = Signal(str)
+    finished = Signal(list)
 
     def __init__(self, pdf_path, do_qif):
         super().__init__()
         self.pdf_path = pdf_path
         self.do_qif   = do_qif
 
-    @pyqtSlot()
+    @Slot()
     def run(self):
         # capture print()
         old_out, old_err = sys.stdout, sys.stderr
@@ -87,16 +89,16 @@ class PdfWorker(QObject):
 
 class FolderWorker(QObject):
     """Batch‐convert all PDFs in a folder."""
-    log      = pyqtSignal(str)
-    error    = pyqtSignal(str)
-    finished = pyqtSignal(list)
+    log      = Signal(str)
+    error    = Signal(str)
+    finished = Signal(list)
 
     def __init__(self, folder, do_qif):
         super().__init__()
         self.folder = folder
         self.do_qif = do_qif
 
-    @pyqtSlot()
+    @Slot()
     def run(self):
         # capture print
         old_out, old_err = sys.stdout, sys.stderr
@@ -150,15 +152,15 @@ class FolderWorker(QObject):
 
 
 class CsvWorker(QObject):
-    log      = pyqtSignal(str)
-    error    = pyqtSignal(str)
-    finished = pyqtSignal(list)
+    log      = Signal(str)
+    error    = Signal(str)
+    finished = Signal(list)
 
     def __init__(self, csv_path):
         super().__init__()
         self.csv_path = csv_path
 
-    @pyqtSlot()
+    @Slot()
     def run(self):
         old_out, old_err = sys.stdout, sys.stderr
         sys.stdout = EmittingStream(self.log)
@@ -176,15 +178,15 @@ class CsvWorker(QObject):
 
 class CsvFolderWorker(QObject):
     """Batch‐convert all CSVs in a folder → QIF."""
-    log      = pyqtSignal(str)
-    error    = pyqtSignal(str)
-    finished = pyqtSignal(list)
+    log      = Signal(str)
+    error    = Signal(str)
+    finished = Signal(list)
 
     def __init__(self, folder):
         super().__init__()
         self.folder = folder
 
-    @pyqtSlot()
+    @Slot()
     def run(self):
         outputs = []
         try:
