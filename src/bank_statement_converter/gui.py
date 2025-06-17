@@ -55,17 +55,20 @@ class PdfWorker(QObject):
         outputs = []
         try:
             self.log.emit(f"--- {os.path.basename(self.pdf_path)} ---")
-            bank = detect_bank(self.pdf_path)
+            bank_info = detect_bank(self.pdf_path)
+            bank = bank_info[0]
+            account_type = bank_info[1]
             if not bank:
                 raise RuntimeError("Bank could not be detected")
             
             self.log.emit(f"  Detected bank: {bank.upper()}")
+            self.log.emit(f"  Detected account type: {account_type.upper()}")
 
             print("Converting to CSV…")
             if bank == 'cba':
                 csv_path = convert_cba(self.pdf_path)
             elif bank == 'nab':
-                csv_path = convert_nab(self.pdf_path)
+                csv_path = convert_nab(self.pdf_path, account_type)
             elif bank == 'anz':
                 csv_path = convert_anz(self.pdf_path)
             elif bank == 'wbc':
@@ -127,16 +130,19 @@ class FolderWorker(QObject):
 
             for pdf in pdfs:
                 self.log.emit(f"--- {os.path.basename(pdf)} ---")
-                bank = detect_bank(pdf)
+                bank_info = detect_bank(pdf)
+                bank = bank_info[0]
+                account_type = bank_info[1]
                 if not bank:
                     self.log.emit("  ERROR: could not detect bank")
                     continue
                 self.log.emit(f"  Detected bank: {bank.upper()}")
+                self.log.emit(f"  Detected account type: {account_type.upper()}")
 
                 if bank == 'cba':
                     csv_path = convert_cba(pdf)
                 elif bank == 'nab':
-                    csv_path = convert_nab(pdf)
+                    csv_path = convert_nab(pdf, account_type)
                 elif bank == 'anz':
                     csv_path = convert_anz(pdf)
                 elif bank == 'wbc':

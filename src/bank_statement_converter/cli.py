@@ -10,17 +10,21 @@ from .ben_converter import convert_ben
 from .csv2qif       import csv_to_qif
 
 def pdf2csv_qif(pdf_path: str, do_qif: bool):
-    bank = detect_bank(pdf_path)
+    bank_info = detect_bank(pdf_path)
+    bank = bank_info[0]
+    account_type = bank_info[1]
+    
     if not bank:
         raise ValueError(f"Could not detect bank from PDF: {pdf_path!r}")
     print(f"Detected bank: {bank.upper()}")
+    print(f"Detected account type: {account_type.upper()}")
     print("-------------------------------------------------")
 
     # dispatch to the correct converter
     if bank == 'cba':
         csv_path = convert_cba(pdf_path)
     elif bank == 'nab':
-        csv_path = convert_nab(pdf_path)
+        csv_path = convert_nab(pdf_path, account_type)
     elif bank == 'anz':
         csv_path = convert_anz(pdf_path)
     elif bank == 'wbc':

@@ -38,11 +38,12 @@ If you only have PDF statements available from one of the major Australian bank,
 
 ## Supported Bank Statements
 
-| Bank              | Statement Type                                                                 | Notes                                                                                     |
+| Bank              | Statement Type                                                                 | Checks                                                                                     |
 | ----------------- | ------------------------------------------------------------------------------ | ----------------------------------------------------------------------------------------- |
 | **CBA**           | Business Transaction Account                                                   | Running balance check on every transaction and final closing balance verification        |
 | **ANZ**           | Business Advantage / Online Saver / Business Extra                             | Running balance check on every transaction and final closing balance verification        |
 | **NAB**           | Transaction Account                                                            | Final check: sum of all transactions vs. (closing balance − opening balance)             |
+| **NAB**           | Everyday Business Account                                                            | Final check: sum of all transactions vs. (closing balance − opening balance)             |
 | **Westpac (WBC)** | Business One Plus                                                              | Parsing may be potentially be imperfect—`get_transactions` needs refinement. No running-balance checks.  |
 | **Bendigo (BEN)** | Business Basic                                                                 | Running balance check on every transaction and final difference between opening & closing balance/total credit/total debit/closing balance verification        |
 
@@ -153,7 +154,7 @@ Converted files will appear in the same directory as the source PDF.
 
 ## **Building a Standalone Executable**
 
-To package the GUI as a Windows `.exe.` using PyInstaller:
+To package the GUI as a Windows `.exe` using PyInstaller:
 
    ```bash
    pyinstaller \
@@ -178,8 +179,9 @@ The generated executable will be in `dist/bstc-gui.exe`.
 
 ### **To Do**
 
-- NAB Business Everyday Account; use string of dots as separator of transactions; if dates cell is empty use previous stored date.
+- ~~NAB Business Everyday Account; use string of dots as separator of transactions; if dates cell is empty use previous stored date.~~
 - Maybe update some of the converters to save the same number of checks as the Bendigo bank converter. 
 - Add csv intermediary removal to cli.py.
 - Maybe add option to specify output path.
 - Maybe refactor cli code; add more comments to code.
+- Update incorrect number of transactions for converters; also add skip for empty pages just incase
