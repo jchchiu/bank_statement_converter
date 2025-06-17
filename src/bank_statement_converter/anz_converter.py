@@ -19,6 +19,11 @@ def get_transactions(pdf_path: str):
               
     for page in doc[1:]:
         remove_annots(page)
+        # To skip empty pages
+        if not page.get_text():
+            continue
+        if not page.get_drawings():
+            continue
         
         # ADAPTED FROM: https://github.com/pymupdf/PyMuPDF/discussions/1842
         paths = page.get_drawings()  # extract page's line art
@@ -131,7 +136,8 @@ def get_transactions(pdf_path: str):
             break
                 
     comb_data_clean = [x for x in comb_data if x != []]
-    print(f"Number of transactions: {len(comb_data_clean)}")
+    print(f"Number of transactions: {len(comb_data_clean) - 1}")
+    print(f"Calculated closing balance: ${round(running_balance, 2)}")
     
     return comb_data_clean
 

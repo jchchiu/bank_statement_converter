@@ -184,4 +184,4 @@ The generated executable will be in `dist/bstc-gui.exe`.
 - Add csv intermediary removal to cli.py.
 - Maybe add option to specify output path.
 - Maybe refactor cli code; add more comments to code.
-- Update incorrect number of transactions for converters; also add skip for empty pages just incase
+- ~~Update incorrect number of transactions for converters; also add skip for empty pages just incase~~
