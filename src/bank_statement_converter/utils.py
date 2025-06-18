@@ -33,7 +33,7 @@ def export_to_csv(data, output_file):
         writer.writerows(data)
 
 # To parse datetime
-def reformat_date(date: str, output_format: str = "%d/%m/%y") -> str | None:
+def reformat_date(date: str, output_format: str = "%d/%m/%Y") -> str | None:
     try:
         dt = parser.parse(date, dayfirst=True) # AUS day is first in statements
     except (ValueError, OverflowError):
