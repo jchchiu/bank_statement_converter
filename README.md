@@ -114,7 +114,8 @@ For a folder of pdf files:
    ```
 
 Common options:
-- `--qif` : After PDF → CSV conversion does CSV → QIF conversion
+- `-q` or `--qif` : After PDF → CSV conversion does CSV → QIF conversion
+- `-r` or `--rm_csv` : After PDF → CSV → QIF conversion, removes intermediary CSV (only works when `-q` is also flagged)
 
 
 For converting only a single csv file:
@@ -181,7 +182,8 @@ The generated executable will be in `dist/bstc-gui.exe`.
 
 - ~~NAB Business Everyday Account; use string of dots as separator of transactions; if dates cell is empty use previous stored date.~~
 - Maybe update some of the converters to save the same number of checks as the Bendigo bank converter. 
-- Add csv intermediary removal to cli.py.
+- ~~Add csv intermediary removal to cli.py.~~
 - Maybe add option to specify output path.
 - Maybe refactor cli code; add more comments to code.
 - ~~Update incorrect number of transactions for converters; also add skip for empty pages just incase~~
+- Maybe add undo button for GUI
