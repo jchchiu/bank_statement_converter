@@ -312,7 +312,6 @@ def get_business_everyday(pdf_path: str):
             t_line += 1
             
     comb_data_clean = [x for x in comb_data if x != []]
-    print(comb_data_clean)
     print(f"Number of transactions: {len(comb_data_clean) - 1}")
     print(f"Calculated total credits: ${round(tot_credit, 2)}")
     print(f"Calculated total debits: ${round(tot_debit, 2)}")

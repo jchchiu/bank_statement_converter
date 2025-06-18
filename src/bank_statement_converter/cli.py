@@ -1,4 +1,5 @@
 import argparse
+import os
 from pathlib import Path
 
 from .bank_detector import detect_bank
@@ -9,7 +10,7 @@ from .wbc_converter import convert_wbc
 from .ben_converter import convert_ben
 from .csv2qif       import csv_to_qif
 
-def pdf2csv_qif(pdf_path: str, do_qif: bool):
+def pdf2csv_qif(pdf_path: str, do_qif: bool, rm_csv: bool):
     bank_info = detect_bank(pdf_path)
     bank = bank_info[0]
     account_type = bank_info[1]
@@ -40,6 +41,13 @@ def pdf2csv_qif(pdf_path: str, do_qif: bool):
         print("-------- Converting CSV to QIF --------")
         qif_path = csv_to_qif(csv_path)
         print(f"Created QIF: {qif_path}")
+        
+        if rm_csv:
+            print("---------- Removing CSV File ----------")
+            os.remove(csv_path)
+            print(f"Removed CSV: {csv_path}")
+            return [qif_path]
+        
         return [csv_path, qif_path]
 
     return [csv_path]
@@ -59,8 +67,12 @@ def main():
     )
     file_p.add_argument('pdf_path', help="Path to the input PDF")
     file_p.add_argument(
-        '--qif', action='store_true',
+        '-q', '--qif', action='store_true',
         help="Also convert the resulting CSV to QIF"
+    )
+    file_p.add_argument(
+        '-r', '--rm_csv', action='store_true',
+        help="Remove intermediary CSV after conversion to QIF (use in conjunction with -q)"
     )
 
     # folder: batch-convert all PDFs in a folder
@@ -70,8 +82,12 @@ def main():
     )
     fld_p.add_argument('folder_path', help="Path to folder containing PDFs")
     fld_p.add_argument(
-        '--qif', action='store_true',
+        '-q', '--qif', action='store_true',
         help="Also convert each CSV to QIF"
+    )
+    fld_p.add_argument(
+        '-r', '--rm_csv', action='store_true',
+        help="Remove intermediary CSV after conversion to QIF (use in conjunction with -q)"
     )
 
     # csv2qif: single CSV → QIF
@@ -83,8 +99,7 @@ def main():
 
     args = p.parse_args()
     if args.cmd == 'file':
-        outputs = pdf2csv_qif(args.pdf_path, args.qif)
-        # nothing more to do
+        outputs = pdf2csv_qif(args.pdf_path, args.qif, args.rm_csv)
 
     elif args.cmd == 'folder':
         folder = Path(args.folder_path)
@@ -99,7 +114,7 @@ def main():
         for pdf in pdfs:
             print(f"\n=== Processing {pdf.name} ===")
             try:
-                outs = pdf2csv_qif(str(pdf), args.qif)
+                outs = pdf2csv_qif(str(pdf), args.qif, args.rm_csv)
                 all_out.extend(outs)
             except Exception as e:
                 print(f"ERROR on {pdf.name}: {e}")

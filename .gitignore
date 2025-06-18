@@ -26,7 +26,8 @@ pip-delete-this-directory.txt
 .coverage.*
 .cache
 .pytest_cache/
-test_files/
+tests/
+pytest.ini
 
 # mypy
 .mypy_cache/
