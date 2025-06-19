@@ -53,7 +53,7 @@ If you only have PDF statements available from one of the major Australian bank,
 
 The CSV output includes, for each transaction:
 
-- **Date** - in the format *%d/%m/%y* (e.g. 01/12/25) 
+- **Date** - in the format *%d/%m/%Y* (e.g. 01/12/2025) 
 - **Transaction Details** - details same as the bank statement 
 - **Amount** - in credits (e.g. 50.50) or debits in negative (e.g. -100.25)
 
@@ -104,13 +104,13 @@ Make sure you're at the root of the package
 For a single file:
 
    ```bash
-   bstc file --pdf_path "/path/to/statement.pdf" --qif
+   bstc file "/path/to/statement.pdf"
    ```
 
 For a folder of pdf files:
 
    ```bash
-   bstc folder --folder_path "/path/to/folder"
+   bstc folder "/path/to/folder" --qif --rm_csv
    ```
 
 Common options:
@@ -121,7 +121,7 @@ Common options:
 For converting only a single csv file:
 
    ```bash
-   bstc csv2qif --csv_path "/path/to/file.csv"
+   bstc csv2qif "/path/to/file.csv"
    ```
 
 Run `bstc --help` for a full list of commands and options.
