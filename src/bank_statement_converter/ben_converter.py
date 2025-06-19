@@ -1,5 +1,6 @@
 import fitz
 import os.path
+import re
 from .utils import export_to_csv, is_datetime, reformat_date, csv_rename, check_page_rotation, clean_up_values, remove_annots
 
 """
@@ -80,6 +81,7 @@ def get_transactions(pdf_path: str):
     tot_credit = 0
     tot_debit = 0
     tot_running = 0
+    summary_flag = False
               
     for page in doc:
         remove_annots(page)
@@ -145,10 +147,23 @@ def get_transactions(pdf_path: str):
                     else:
                         break
                 if j == 1:
+                    if 'Monthly Transaction Summary' in text:
+                        # Find match of amount in format example '(1 @ 0.40)'
+                        match = re.search(r"\(\d+\s*@\s*\d+\.\d+\)", text).group().strip("()").split()
+                        # Calculate total number of fees by multiplying [0] (1) by [2] (0.40)
+                        # Only works if multiple of same amount; LIKELY FOR BUG TO OCCUR HERE
+                        match_str = str(round(float(match[0]) * float(match[2]), 2))
+                        summary_flag = True
                     comb_data[t_line+1].append(text.strip())
                     continue
                 if j == 2:
-                    if text:
+                    if text and (summary_flag == True):
+                        comb_data[t_line+1].append('-' + match_str)
+                        running_balance -= float(match_str)
+                        tot_running -= float(match_str)
+                        tot_debit -= float(match_str)     
+                        summary_flag = False                  
+                    elif text:
                         amount_str = str(text.replace(',', '').replace('$', '').strip())
                         comb_data[t_line+1].append('-' + amount_str)
                         running_balance -= float(amount_str)
@@ -156,7 +171,13 @@ def get_transactions(pdf_path: str):
                         tot_debit -= float(amount_str)
                     continue
                 if j == 3:
-                    if text:
+                    if text and (summary_flag == True):
+                        comb_data[t_line+1].append(match_str)
+                        running_balance += float(match_str)
+                        tot_running += float(match_str)
+                        tot_debit += float(match_str)     
+                        summary_flag = False    
+                    elif text:
                         amount_str = str(text.replace(',', '').replace('$', '').strip())
                         comb_data[t_line+1].append(amount_str)
                         running_balance += float(amount_str)
