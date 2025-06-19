@@ -87,6 +87,10 @@ def get_transactions(pdf_path: str):
             balance_flag = True
             continue
         if balance_flag == True:
+            if line == 'Nil':
+                print(f"Obtained opening balance: ${running_balance}")
+                balance_flag = False
+                continue
             running_balance = round(float(line[1:-2].replace(',', '').strip()), 2)
             print(f"Obtained opening balance: ${running_balance}")
             balance_flag = False
@@ -97,6 +101,11 @@ def get_transactions(pdf_path: str):
             closing_flag = True
             continue
         if closing_flag == True:
+            if line == 'Nil':
+                print(f"Obtained closing balance: ${closing_balance}")
+                print(f"-------------------------------------------------")
+                closing_flag = False
+                break
             closing_balance = round(float(line[1:-2].replace(',', '').strip()), 2)
             print(f"Obtained closing balance: ${closing_balance}")
             print(f"-------------------------------------------------")
