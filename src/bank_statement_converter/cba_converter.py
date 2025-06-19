@@ -72,9 +72,9 @@ def get_transactions(pdf_path: str):
     
     amounts = []
     
-    running_balance = None
+    running_balance = 0
     balance_flag = False
-    closing_balance = None
+    closing_balance = 0
     closing_flag = False
     
     for line in lines:

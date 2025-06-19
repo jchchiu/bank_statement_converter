@@ -14,11 +14,11 @@ def diff_balances(doc):
     text = page.get_text(clip=rect) + "\n"
     lines = text.split('\n')
     
-    running_balance = None
+    running_balance = 0
     balance_flag = False
-    credits = None
+    credits = 0
     credits_flag = False
-    debits = None
+    debits = 0
     debits_flag = False
     closing_balance = 0
     closing_flag = False

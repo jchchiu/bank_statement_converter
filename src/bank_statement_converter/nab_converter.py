@@ -22,13 +22,12 @@ def diff_balances(doc):
     debits_flag = False
     diff_amount = 0
     
-    opening_balance = None
+    opening_balance = 0
     balance_flag = False
     closing_balance = None
     closing_flag = False
     
     for line in lines:
-
         if not line.strip():
             continue
         if (line == 'Opening Balance') or (line == 'Opening balance'):
