@@ -29,7 +29,7 @@ def pdf2csv_qif(pdf_path: str, do_qif: bool, rm_csv: bool):
     elif bank == 'anz':
         csv_path = convert_anz(pdf_path)
     elif bank == 'wbc':
-        csv_path = convert_wbc(pdf_path)
+        csv_path = convert_wbc(pdf_path, account_type)
     elif bank == 'ben':
         csv_path = convert_ben(pdf_path)
     else:
