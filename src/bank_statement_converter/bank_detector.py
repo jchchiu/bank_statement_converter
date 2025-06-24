@@ -11,8 +11,9 @@ BANK_KEYWORDS = {
     'nab': ['National Australia Bank Limited ABN 12 004 044 937 AFSL and Australian Credit Licence 230686',
             'Transaction Account',   # Transaction Account
             'BUSINESS EVERYDAY AC'], # Business Everyday Account
-    'wbc': ['Copyright © 2025 Westpac Banking Corporation',
-            'Business One Plus'], # Westpac Business One Plus 
+    'wbc': ['ABN 33 007 457 141',
+            'Transaction Search', # Westpac Business One Plus Transaction Search
+            'Electronic Statement'], # Westpac Business One Account
     'ben': ['Bendigo and Adelaide Bank Limited ABN 11 068 049 178 AFSL/Australian Credit Licence 237879',
             'Business Basic Account'] # Bendigo Business Basic Account
 }
