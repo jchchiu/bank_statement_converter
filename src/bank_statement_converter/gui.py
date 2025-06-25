@@ -72,7 +72,7 @@ class PdfWorker(QObject):
             elif bank == 'anz':
                 csv_path = convert_anz(self.pdf_path)
             elif bank == 'wbc':
-                csv_path = convert_wbc(self.pdf_path)
+                csv_path = convert_wbc(self.pdf_path, account_type)
             elif bank == 'ben':
                 csv_path = convert_ben(self.pdf_path)
             else:
@@ -146,7 +146,7 @@ class FolderWorker(QObject):
                 elif bank == 'anz':
                     csv_path = convert_anz(pdf)
                 elif bank == 'wbc':
-                    csv_path = convert_wbc(pdf)
+                    csv_path = convert_wbc(pdf, account_type)
                 elif bank == 'ben':
                     csv_path = convert_ben(pdf)
                 else:
