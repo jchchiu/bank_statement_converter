@@ -1,6 +1,6 @@
 # Australian Bank Statement Converter (bstc)
 
-A tool for converting Australian PDF bank statements to CSV or QIF format. Supports both a command-line interface (CLI) and a graphical interface (GUI).
+A tool for converting Australian PDF bank statements to CSV or QIF format. Supports both a command-line interface (CLI) and a graphical interface (GUI), and includes an option to install as an executable.
 
 ---
 
@@ -44,7 +44,8 @@ If you only have PDF statements available from one of the major Australian bank,
 | **ANZ**           | Business Advantage / Online Saver / Business Extra                             | Running balance check on every transaction and final closing balance verification        |
 | **NAB**           | Transaction Account                                                            | Final check: sum of all transactions vs. (closing balance − opening balance)             |
 | **NAB**           | Everyday Business Account                                                            | Final check: sum of all transactions vs. (closing balance − opening balance)             |
-| **Westpac (WBC)** | Business One Plus                                                              | Parsing may be potentially be imperfect—`get_transactions` needs refinement. No running-balance checks.  |
+| **Westpac (WBC)** | Business One Account                                                            | Running balance check on every transaction and final difference between opening & closing balance/total credit/total debit/closing balance verification   |
+| **Westpac (WBC)** | Business One Plus (Transaction Search)                                                             | No running-balance checks (See [Notes](#notes)) |
 | **Bendigo (BEN)** | Business Basic                                                                 | Running balance check on every transaction and final difference between opening & closing balance/total credit/total debit/closing balance verification        |
 
 ---
@@ -168,11 +169,18 @@ To package the GUI as a Windows `.exe` using PyInstaller:
 
 The generated executable will be in `dist/bstc-gui.exe`.
 
+   ```bash
+   pyinstaller --windowed --name bas-converter --paths src src/launcher_gui.py
+   ```
+
 ---
 
 ## **Notes**
 
-- Westpac Business One Plus statements don't include opening/closing balances so there are no balance checks. You may need to visually compare the PDF and outputs to verify all transactions are correct.
+- Westpac Business One Plus printings of Transaction Searches don't include opening/closing balances so there are no balance checks. You may need to visually compare the PDF and outputs to verify all transactions are correct.
+   - Algorithm based on Westpac PDF was using printing of a Transaction Search of the Westpac Business One Plus account
+
+- For Westpac Business One eStatement seems like a quicker algorithm can be used since transactions state 'withdrawal' or 'deposit'; can try implementing it and if it fails fallback to slower algorithm
 
 - CBA converter gets all the transactions as text and runs through it line by line, while all other converters make a grid of coordinates that correspond to a given transaction (depending on whether transactions alternate by fill colour or are separated by a line) and its columns (manually given), and then iterates over them to get the text. This makes the CBA converter much faster (O(n) vs. O(n*m), where n is the number of transactions and m is the number of columns), but may be more prone to errors if the pattern of how the lines are read is different.
 
@@ -186,4 +194,7 @@ The generated executable will be in `dist/bstc-gui.exe`.
 - Maybe add option to specify output path.
 - Maybe refactor cli code; add more comments to code.
 - ~~Update incorrect number of transactions for converters; also add skip for empty pages just incase~~
-- Maybe add undo button for GUI; add drag and drop for file and folders
+- Maybe add undo button for GUI
+- Add drag and drop for file and folders
+- ~~Add Westpac Business One statement (Different from Westpac Buiness One Plus Transaction Search print)~~
+- Try implementing quicker algorithm for wbc
