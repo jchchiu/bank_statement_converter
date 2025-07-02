@@ -202,7 +202,7 @@ def remove_dots(text):
 """
 Get the transactions for Business Everyday Account
 """
-def get_business_everyday(pdf_path: str):        
+def get_business_everyday(pdf_path: str, account_type: str):        
     doc = check_page_rotation(pdf_path)
     
     amnt_checks = diff_balances(doc)
@@ -215,6 +215,7 @@ def get_business_everyday(pdf_path: str):
     tot_debit = 0
     tot_running = 0
     balance_flag = False
+    trans_sum_flag = False
 
     for page in doc:
         remove_annots(page)
@@ -231,10 +232,13 @@ def get_business_everyday(pdf_path: str):
             y_values.append(found.y1)
             
         # the page top needs to be added as y-coordinate as well
-        r2 = page.search_for("Transaction Details")[0] # do not include header line
-        y_values.append(round(r2.y0 + 40))  # add top of header line as y-coord
+        try:
+            r2 = page.search_for("Transaction Details")[0] # do not include header line
+            y_values.append(round(r2.y0 + 40))  # add top of header line as y-coord
+        except:
+            continue
 
-        x_values = [30,97,320,410,480,580]
+        x_values = [35,97,320,410,480,580]
         # x- and y-coordinates are now extracted, do further clean-up
         x_values = sorted(list(x_values))
         x_values = clean_up_values(x_values)
@@ -261,38 +265,53 @@ def get_business_everyday(pdf_path: str):
                     if text[:4] == 'Date':
                         balance_flag = True
                         continue
-                    if is_datetime(text, "%d %b %Y"):
+                    elif is_datetime(text, "%d %b %Y"):
                         current_date = text
                         comb_data[t_line+1].append(reformat_date(current_date))
-                    elif not text:
+                    elif not text: # Append the date of last transaction if date cell is empty
                         comb_data[t_line+1].append(reformat_date(current_date))
-                    continue
-                if j == 1:
+                elif j == 1:
                     if balance_flag == True:
+                        continue
+                    elif (text[:20] == 'TRANSACTION SUMMARY ') and (account_type == 'BUSINESS CHEQUE ACCOUNT'):
+                        str_to_find = 'Total Fees Charged'
+                        start_index = text.rfind(str_to_find)
+                        comb_data[t_line+1].append(text[start_index + len(str_to_find) + 1:])
+                        trans_sum_flag = True
                         continue
                     comb_data[t_line+1].append(text)
-                    continue
-                if j == 2:
+                elif j == 2:
                     if balance_flag == True:
                         continue
-                    if text:
+                    elif text and (trans_sum_flag == True):
+                        str_to_find = '........'
+                        start_index = text.rfind(str_to_find)
+                        text_clean = remove_dots(text[start_index:])
+                        # May be error here in future as always assumes transaction summary is followed by debit
+                        amount_str = str(text_clean.replace(',', '').strip())
+                        comb_data[t_line+1].append('-' + amount_str)
+                        running_balance -= float(amount_str)
+                        tot_running -= float(amount_str)
+                        tot_debit -= float(amount_str)
+                    elif text:
                         amount_str = str(text.replace(',', '').strip())
                         comb_data[t_line+1].append('-' + amount_str)
                         running_balance -= float(amount_str)
                         tot_running -= float(amount_str)
                         tot_debit -= float(amount_str)
-                    continue
-                if j == 3:
+                elif j == 3:
                     if balance_flag == True:
+                        continue
+                    elif trans_sum_flag == True:
+                        trans_sum_flag = False
                         continue                    
-                    if text:
+                    elif text:
                         amount_str = str(text.replace(',', '').strip())
                         comb_data[t_line+1].append(amount_str)
                         running_balance += float(amount_str)
                         tot_running += float(amount_str)
                         tot_credit += float(amount_str)
-                    continue
-                if j == 4:
+                elif j == 4:
                     if balance_flag == True:
                         given_balance = round(float(text.replace('Balance','').replace('Cr','').replace(',', '').strip()), 2)
                         if round(running_balance, 2) == given_balance:
@@ -331,8 +350,10 @@ Convert NAB pdf depending on statement type
 def convert_nab(pdf_path: str, account_type: str):
     if account_type == 'Transaction Account':
         data = get_transactions_acc(pdf_path)
-    if account_type == 'BUSINESS EVERYDAY AC':
-        data = get_business_everyday(pdf_path)
+    elif account_type == 'BUSINESS EVERYDAY AC':
+        data = get_business_everyday(pdf_path, account_type)
+    elif account_type == 'BUSINESS CHEQUE ACCOUNT':
+        data = get_business_everyday(pdf_path, account_type)
     csv_name = (os.path.splitext(os.path.basename(pdf_path))[0] + '.csv')
     export_to_csv(data, (os.path.dirname(pdf_path) + '/' + csv_name))
     return csv_rename(pdf_path)
