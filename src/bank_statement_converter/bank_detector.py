@@ -9,13 +9,14 @@ BANK_KEYWORDS = {
             'BUSINESS ONLINE SAVER STATEMENT',
             'BUSINESS EXTRA STATEMENT'],
     'nab': ['National Australia Bank Limited ABN 12 004 044 937 AFSL and Australian Credit Licence 230686',
-            'Transaction Account',   # Transaction Account
-            'BUSINESS EVERYDAY AC'], # Business Everyday Account
+            'Transaction Account',           # Transaction Account
+            'BUSINESS EVERYDAY AC',          # Business Everyday Account
+            'BUSINESS CHEQUE ACCOUNT'],      # Business Cheque Account
     'wbc': ['ABN 33 007 457 141',
-            'Transaction Search', # Westpac Business One Plus Transaction Search
-            'Electronic Statement'], # Westpac Business One Account
+            'Transaction Search',            # Westpac Business One Plus Transaction Search
+            'Electronic Statement'],         # Westpac Business One Account
     'ben': ['Bendigo and Adelaide Bank Limited ABN 11 068 049 178 AFSL/Australian Credit Licence 237879',
-            'Business Basic Account'] # Bendigo Business Basic Account
+            'Business Basic Account']        # Bendigo Business Basic Account
 }
 
 def extract_first_page_text(pdf_path: str) -> str:
