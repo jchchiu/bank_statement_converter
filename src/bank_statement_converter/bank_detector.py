@@ -7,7 +7,8 @@ BANK_KEYWORDS = {
     'anz': ['WELCOME TO YOUR ANZ ACCOUNT AT A GLANCE ',
             'BUSINESS ADVANTAGE STATEMENT',
             'BUSINESS ONLINE SAVER STATEMENT',
-            'BUSINESS EXTRA STATEMENT'],
+            'BUSINESS EXTRA STATEMENT',
+            'BUSINESS ESSENTIALS STATEMENT'],
     'nab': ['National Australia Bank Limited ABN 12 004 044 937 AFSL and Australian Credit Licence 230686',
             'Transaction Account',           # Transaction Account
             'BUSINESS EVERYDAY AC',          # Business Everyday Account
