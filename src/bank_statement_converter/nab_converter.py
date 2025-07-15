@@ -231,12 +231,36 @@ def get_business_everyday(pdf_path: str, account_type: str):
         for found in text_instances:
             y_values.append(found.y1)
             
-        # the page top needs to be added as y-coordinate as well
+        # Add the top of the page as a y-coord
         try:
-            r2 = page.search_for("Transaction Details")[0] # do not include header line
-            y_values.append(round(r2.y0 + 40))  # add top of header line as y-coord
+            r2 = page.search_for("Transaction Details")[0]
+            y_values.append(round(r2.y0 + 40))  # NOTE: can probably change this to r2.y1 + 10?
         except:
             continue
+        
+        # The "Please Note From Today Your Dr Interest Rate Is x%" lines needs to be added as y-coordinates
+        #  as it does not have dots and is not a transaction line; add both the top and bottom y-coord
+        try:
+            r3 = page.search_for("Please Note From Today Your ")[0]
+            y_values.append(r3.y0)
+            y_values.append(r3.y1)
+        except:
+            pass
+        
+        # The "Important As part of your loan agreement ... moneysmart.gov.au" lines needs to be added as y-coordinates
+        #  as it does not have dots and is not a transaction line
+        try:
+            r3 = page.search_for("Important")[0]
+            y_values.append(r3.y0) # Only get the top y-coord of the line
+        except:
+            pass
+        
+        # Separate try as they may be on different pages
+        try:
+            r4 = page.search_for("moneysmart.gov.au")[0]
+            y_values.append(r4.y1) # Only get the bottom y-coord of the line
+        except:
+            pass
 
         x_values = [35,97,320,410,480,580]
         # x- and y-coordinates are now extracted, do further clean-up
@@ -255,7 +279,7 @@ def get_business_everyday(pdf_path: str, account_type: str):
                 cell = fitz.Rect(x_values[j], y_values[i], x_values[j + 1], y_values[i + 1])
                 row.append(cell)
             cells.append(row)
-
+            
         # Now extract the text of each of the cells
         for i, row in enumerate(cells):
             comb_data.append([])
@@ -273,12 +297,25 @@ def get_business_everyday(pdf_path: str, account_type: str):
                 elif j == 1:
                     if balance_flag == True:
                         continue
+                    # For the transaction summary we get the transaction name after 'Total Fees Charged'
+                    # NOTE: To test: add 'Total Fees Charged' as a y-coord and skip the cell
                     elif (text[:20] == 'TRANSACTION SUMMARY ') and (account_type == 'BUSINESS CHEQUE ACCOUNT'):
                         str_to_find = 'Total Fees Charged'
                         start_index = text.rfind(str_to_find)
                         comb_data[t_line+1].append(text[start_index + len(str_to_find) + 1:])
                         trans_sum_flag = True
                         continue
+                    elif not text:
+                        comb_data[t_line+1].pop()
+                        break    
+                    elif text[:27] == 'Please Note From Today Your':
+                        current_date = comb_data[t_line+1][0]
+                        comb_data[t_line+1].pop()
+                        break            
+                    elif (text[:40] == 'Important As part of your loan agreement') or ('moneysmart.gov.au.' in text):
+                        current_date = comb_data[t_line+1][0]
+                        comb_data[t_line+1].pop()
+                        break                  
                     comb_data[t_line+1].append(text)
                 elif j == 2:
                     if balance_flag == True:
@@ -288,6 +325,7 @@ def get_business_everyday(pdf_path: str, account_type: str):
                         start_index = text.rfind(str_to_find)
                         text_clean = remove_dots(text[start_index:])
                         # May be error here in future as always assumes transaction summary is followed by debit
+                        # In future if this occurs, add 'Total Fees Charged' as a y-coord and skip the cell
                         amount_str = str(text_clean.replace(',', '').strip())
                         comb_data[t_line+1].append('-' + amount_str)
                         running_balance -= float(amount_str)
@@ -325,8 +363,7 @@ def get_business_everyday(pdf_path: str, account_type: str):
                             continue
                         else:
                             raise (ValueError(f"Running balance and given balance do not match: {running_balance}, {given_balance} \n \
-                                        Find at row: {i}"))                                                
-                                           
+                                        Find at row: {i}"))                                                                            
             t_line += 1
             
     comb_data_clean = [x for x in comb_data if x != []]
