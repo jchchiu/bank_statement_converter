@@ -41,7 +41,7 @@ If you only have PDF statements available from one of the major Australian bank,
 | Bank              | Statement Type                                                                 | Checks                                                                                     |
 | ----------------- | ------------------------------------------------------------------------------ | ----------------------------------------------------------------------------------------- |
 | **CBA**           | Business Transaction Account                                                   | Running balance check on every transaction and final closing balance verification        |
-| **ANZ**           | Business Advantage / Online Saver / Business Extra                             | Running balance check on every transaction and final closing balance verification        |
+| **ANZ**           | Business Advantage / Online Saver / Business Extra / Business Essentials       | Running balance check on every transaction and final closing balance verification        |
 | **NAB**           | Transaction Account                                                            | Final check: sum of all transactions vs. (closing balance − opening balance)             |
 | **NAB**           | Everyday Business Account / Business Cheque Account                            | Final check: sum of all transactions vs. (closing balance − opening balance)             |
 | **Westpac (WBC)** | Business One Account                                                           | Running balance check on every transaction and final difference between opening & closing balance/total credit/total debit/closing balance verification   |
