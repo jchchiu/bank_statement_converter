@@ -13,9 +13,13 @@ def csv_to_qif(csv_filename: str):
         
         # Check whether the date
         date_flag = False
+        encode_flag = False
         try:
             first_row = next(read_copy)
-            if 'Date' in first_row:  # May have issues here if csv doesn't have 'Date' header for date
+            if 'ï»¿Date' in first_row:
+                date_flag = True
+                encode_flag = True
+            elif 'Date' in first_row:  # May have issues here if csv doesn't have 'Date' header for date
                 date_flag = True
         except StopIteration:
             pass 
@@ -27,7 +31,11 @@ def csv_to_qif(csv_filename: str):
                 csv_file.seek(0)
                 csv_read_list = csv.reader(csv_file)
                 for row in csv_read_list:
-                    date = reformat_date(row[0])
+                    # For beginning of UTF-8 encoding BOM added by default in windows when converting from xlsx to csv UTF-8
+                    if row[0][:3] == 'ï»¿':
+                        date = reformat_date(row[0][3:])
+                    else:
+                        date = reformat_date(row[0])
                     if row[1][0] == '+':
                         amount = row[1][1:]
                     else:
@@ -41,7 +49,10 @@ def csv_to_qif(csv_filename: str):
                     
             else:
                 for row in csv_read:
-                    date = reformat_date(row['Date'])
+                    if encode_flag == True:
+                        date = reformat_date(row['ï»¿Date'])
+                    else:
+                        date = reformat_date(row['Date'])
                     amount = row['Amount']
                     if 'Transaction Details' in row:
                         details = row['Transaction Details']
