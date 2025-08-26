@@ -102,15 +102,15 @@ def get_transactions_acc(pdf_path: str):
             p for p in paths if p["rect"].width > 80 and p["rect"].height > 1 and p["fill"]
         ]
         # the column coordinates are given ... by someone
-        x_values = set([20,80,355,405,505])
+        x_values = set([20,80,360,410,505])
 
         y_values = set()  # these need to be computed now
 
         for p in grids:  # walk through shading rectangles
             # and add their coordinates to what we have
             r = p["rect"]
-            x_values.add(round(r.x0))  # left of shading
-            x_values.add(round(r.x1))  # right of shading
+            x_values.add(r.x0)  # left of shading
+            x_values.add(r.x1)  # right of shading
             y_values.add(round(r.y0))  # top of shading
             y_values.add(round(r.y1))  # bottom of shading
 
