@@ -3,8 +3,9 @@ from .anz_converter import convert_anz
 from .nab_converter import convert_nab
 from .wbc_converter import convert_wbc
 from .ben_converter import convert_ben
+from .zel_converter import convert_zel
 from .bank_detector import detect_bank
 from .csv2qif import csv_to_qif
 
 __version__ = "0.2.0"
-__all__ = ['convert_cba', 'convert_anz', 'convert_nab', 'convert_wbc', 'csv_to_qif', 'convert_ben', 'detect_bank']
+__all__ = ['convert_cba', 'convert_anz', 'convert_nab', 'convert_wbc', 'csv_to_qif', 'convert_ben', 'convert_zel', 'detect_bank']
