@@ -80,7 +80,11 @@ def get_transactions_search(pdf_path: str):
     
     comb_data = [['Date', 'Transaction Details', 'Amount']]
     running_amount = 0
-    t_line = 0     
+    t_line = 0
+
+    print(f"-------------------------------------------------")
+    print('WARNING: There are no balance checks for this converter. Please manually review the output(s).')
+    print(f"-------------------------------------------------")     
               
     for page in doc:
         remove_annots(page)
@@ -312,19 +316,7 @@ def get_transactions_acc(pdf_path: str):
     else:
         raise (ValueError(f"Running balance and difference between total credits and total debits do not match: {running_balance}, {diff_amount}"))
 
-    return comb_data_clean
-            
-# Function to extract text from a rectangular area on a PDF page
-def text_from_area(pdf_path: str):
-    doc = fitz.open(pdf_path)
-    text = ''
-    
-    for page_number in range(doc.page_count):
-        page = doc[page_number]
-        remove_annots(page)
-        text += page.get_text() + "\n"
-        
-    return text            
+    return comb_data_clean       
             
 """
 Get the transactions for Westpac Business One Plus statement of recent transactions
@@ -332,7 +324,13 @@ Get the transactions for Westpac Business One Plus statement of recent transacti
 def get_transactions_recent(pdf_path: str):
     doc = check_page_rotation(pdf_path)    
     
-    text = text_from_area(pdf_path)
+    text = ''
+    
+    for page_number in range(doc.page_count):
+        page = doc[page_number]
+        remove_annots(page)
+        text += page.get_text() + "\n"
+        
     lines = text.split('\n')        
     
     # Date format of pdf, and what is needed for QIF format
@@ -344,6 +342,10 @@ def get_transactions_recent(pdf_path: str):
     transactions = []
     
     amounts = []
+
+    print(f"-------------------------------------------------")
+    print('WARNING: There are no balance checks for this converter. Please manually review the output(s).')
+    print(f"-------------------------------------------------")
 
     for line in lines:
         if not line.strip():
