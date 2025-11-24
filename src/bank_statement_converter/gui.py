@@ -10,15 +10,8 @@ from qtpy.QtWidgets import (
 )
 from qtpy.QtGui     import QDesktopServices
 
-from .cba_converter import convert_cba
-from .anz_converter import convert_anz
-from .nab_converter import convert_nab
-from .wbc_converter import convert_wbc
-from .ben_converter import convert_ben
-from .zel_converter import convert_zel
-from .bank_detector import detect_bank
-from .csv2qif       import csv_to_qif
-
+from bank_statement_converter import detect_bank, csv_to_qif, convert_anz, \
+    convert_ben, convert_cba, convert_mqg, convert_nab, convert_wbc, convert_zel
 
 # -------------------------------------------------------------------
 # Helpers & Workers
@@ -78,6 +71,8 @@ class PdfWorker(QObject):
                 csv_path = convert_ben(self.pdf_path)
             elif bank == 'zel':
                 csv_path = convert_zel(self.pdf_path)
+            elif bank == 'mqg':
+                csv_path = convert_mqg(self.pdf_path)
             else:
                 raise RuntimeError(f"No converter for bank '{bank}'")
             self.log.emit(f"  → CSV: {csv_path}")
@@ -154,6 +149,8 @@ class FolderWorker(QObject):
                     csv_path = convert_ben(pdf)
                 elif bank == 'zel':
                     csv_path = convert_zel(pdf)
+                elif bank == 'mqg':
+                    csv_path = convert_mqg(pdf)
                 else:
                     self.log.emit(f"  ERROR: no converter for '{bank}'")
                     continue

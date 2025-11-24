@@ -2,14 +2,8 @@ import argparse
 import os
 from pathlib import Path
 
-from .bank_detector import detect_bank
-from .cba_converter import convert_cba
-from .anz_converter import convert_anz
-from .nab_converter import convert_nab
-from .wbc_converter import convert_wbc
-from .ben_converter import convert_ben
-from .zel_converter import convert_zel
-from .csv2qif       import csv_to_qif
+from bank_statement_converter import detect_bank, csv_to_qif, convert_anz, \
+    convert_ben, convert_cba, convert_mqg, convert_nab, convert_wbc, convert_zel
 
 def pdf2csv_qif(pdf_path: str, do_qif: bool, rm_csv: bool):
     bank_info = detect_bank(pdf_path)
@@ -35,6 +29,8 @@ def pdf2csv_qif(pdf_path: str, do_qif: bool, rm_csv: bool):
         csv_path = convert_ben(pdf_path)
     elif bank == 'zel':
         csv_path = convert_zel(pdf_path)
+    elif bank == 'mqg':
+        csv_path = convert_mqg(pdf_path)
     else:
         raise ValueError(f"No converter implemented for bank {bank!r}")
 

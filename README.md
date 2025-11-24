@@ -38,17 +38,18 @@ If you only have PDF statements available from one of the major Australian bank,
 
 ## Supported Bank Statements
 
-| Bank              | Statement Type                                                                 | Checks                                                                                     |
-| ----------------- | ------------------------------------------------------------------------------ | ----------------------------------------------------------------------------------------- |
-| **CBA**           | Business Transaction Account                                                   | Running balance check on every transaction and final closing balance verification        |
-| **ANZ**           | Business Advantage / Online Saver / Business Extra / Business Essentials       | Running balance check on every transaction and final closing balance verification        |
-| **NAB**           | Transaction Account                                                            | Final check: sum of all transactions vs. (closing balance − opening balance)             |
-| **NAB**           | Everyday Business Account / Business Cheque Account                            | Final check: sum of all transactions vs. (closing balance − opening balance)             |
-| **Westpac (WBC)** | Business One Account                                                           | Running balance check on every transaction and final difference between opening & closing balance/total credit/total debit/closing balance verification   |
-| **Westpac (WBC)** | Business One Plus (Transaction Search)                                         | No running-balance checks (See [Notes](#notes)) |
-| **Westpac (WBC)** | Business One Plus (Statement of Recent Transactions)                           | No running-balance checks (See [Notes](#notes)) |
-| **Bendigo (BEN)** | Business Basic                                                                 | Running balance check on every transaction and final difference between opening & closing balance/total credit/total debit/closing balance verification        |
-| **Zeller (ZEL)**  | Transaction Account Statement                                                  | Final difference between opening & closing balance/total credit/total debit/closing balance verification        |
+| Bank                | Statement Type                                                                 | Checks                                                                                     |
+| ------------------- | ------------------------------------------------------------------------------ | ----------------------------------------------------------------------------------------- |
+| **ANZ**             | Business Advantage / Online Saver / Business Extra / Business Essentials       | Running balance check on every transaction and final closing balance verification        |
+| **Bendigo (BEN)**   | Business Basic                                                                 | Running balance check on every transaction and final difference between opening & closing balance/total credit/total debit/closing balance verification          |
+| **CBA**             | Business Transaction Account                                                   | Running balance check on every transaction and final closing balance verification        |
+| **Macquarie (MQG)** | Platinum Transaction Account                                                   | Running balance check on every transaction, running closing balance and given closing balance check, and final difference between opening & closing balance/total credit/total debit/closing balance verification      |
+| **NAB**             | Transaction Account                                                            | Final check: sum of all transactions vs. (closing balance − opening balance)             |
+| **NAB**             | Everyday Business Account / Business Cheque Account                            | Final check: sum of all transactions vs. (closing balance − opening balance)             |
+| **Westpac (WBC)**   | Business One Account                                                           | Running balance check on every transaction and final difference between opening & closing balance/total credit/total debit/closing balance verification   |
+| **Westpac (WBC)**   | Business One Plus (Transaction Search)                                         | No running-balance checks (See [Notes](#notes)) |
+| **Westpac (WBC)**   | Business One Plus (Statement of Recent Transactions)                           | No running-balance checks (See [Notes](#notes)) |
+| **Zeller (ZEL)**    | Transaction Account Statement                                                  | Final difference between opening & closing balance/total credit/total debit/closing balance verification        |
 
 ---
 
