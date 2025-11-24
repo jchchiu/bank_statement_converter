@@ -7,5 +7,5 @@ from .zel_converter import convert_zel
 from .bank_detector import detect_bank
 from .csv2qif import csv_to_qif
 
-__version__ = "0.2.0"
+__version__ = "0.2.1"
 __all__ = ['convert_cba', 'convert_anz', 'convert_nab', 'convert_wbc', 'csv_to_qif', 'convert_ben', 'convert_zel', 'detect_bank']

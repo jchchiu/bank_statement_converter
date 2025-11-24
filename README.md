@@ -46,6 +46,7 @@ If you only have PDF statements available from one of the major Australian bank,
 | **NAB**           | Everyday Business Account / Business Cheque Account                            | Final check: sum of all transactions vs. (closing balance − opening balance)             |
 | **Westpac (WBC)** | Business One Account                                                           | Running balance check on every transaction and final difference between opening & closing balance/total credit/total debit/closing balance verification   |
 | **Westpac (WBC)** | Business One Plus (Transaction Search)                                         | No running-balance checks (See [Notes](#notes)) |
+| **Westpac (WBC)** | Business One Plus (Statement of Recent Transactions)                           | No running-balance checks (See [Notes](#notes)) |
 | **Bendigo (BEN)** | Business Basic                                                                 | Running balance check on every transaction and final difference between opening & closing balance/total credit/total debit/closing balance verification        |
 | **Zeller (ZEL)**  | Transaction Account Statement                                                  | Final difference between opening & closing balance/total credit/total debit/closing balance verification        |
 
@@ -178,7 +179,7 @@ The generated executable will be in `dist/bstc-gui.exe`.
 
 ## **Notes**
 
-- Westpac Business One Plus printings of Transaction Searches don't include opening/closing balances so there are no balance checks. You may need to visually compare the PDF and outputs to verify all transactions are correct.
+- Westpac Business One Plus printings of 'Transaction Searches'/'Statement of Recent Transactions' don't include opening/closing balances so there are no balance checks. You may need to visually compare the PDF and outputs to verify all transactions are correct.
    - Algorithm based on Westpac PDF was using printing of a Transaction Search of the Westpac Business One Plus account
 
 - For Westpac Business One eStatement seems like a quicker algorithm can be used since transactions state 'withdrawal' or 'deposit'; can try implementing it and if it fails fallback to slower algorithm
