@@ -124,13 +124,18 @@ def get_transactions(pdf_path: str):
                 running_balance += round(float(amount), 2)
                 amounts.append(str(amount))
 
-            transactions.append(transaction)
+            transactions.append(transaction.strip())
             date_flag = False
             transaction = ''
             continue
         
         # To keep adding text of transactions on new lines
         if date_flag == True:
+            if line == 'DEBIT INTEREST CHARGED on this account':
+                date_flag = False
+                transaction = ''
+                dates.pop()
+                continue
             transaction = transaction + ' ' + line
             prev_line = line
             continue

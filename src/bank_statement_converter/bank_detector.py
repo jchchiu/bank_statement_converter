@@ -18,7 +18,9 @@ BANK_KEYWORDS = {
             'Electronic Statement',          # Westpac Business One Account
             'Statement of recent transactions'],   # Westpac Business One Statement of Recent Transactions
     'ben': ['Bendigo and Adelaide Bank Limited ABN 11 068 049 178 AFSL/Australian Credit Licence 237879',
-            'Business Basic Account']        # Bendigo Business Basic Account
+            'Business Basic Account'],       # Bendigo Business Basic Account
+    'zel': ['ABN 14 649 001 383 AFSL 534281',
+            'Transaction Account Statement']
 }
 
 def extract_first_page_text(pdf_path: str) -> str:

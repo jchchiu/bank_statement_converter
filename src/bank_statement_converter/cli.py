@@ -8,6 +8,7 @@ from .anz_converter import convert_anz
 from .nab_converter import convert_nab
 from .wbc_converter import convert_wbc
 from .ben_converter import convert_ben
+from .zel_converter import convert_zel
 from .csv2qif       import csv_to_qif
 
 def pdf2csv_qif(pdf_path: str, do_qif: bool, rm_csv: bool):
@@ -32,6 +33,8 @@ def pdf2csv_qif(pdf_path: str, do_qif: bool, rm_csv: bool):
         csv_path = convert_wbc(pdf_path, account_type)
     elif bank == 'ben':
         csv_path = convert_ben(pdf_path)
+    elif bank == 'zel':
+        csv_path = convert_zel(pdf_path)
     else:
         raise ValueError(f"No converter implemented for bank {bank!r}")
 
