@@ -80,7 +80,11 @@ def get_transactions_search(pdf_path: str):
     
     comb_data = [['Date', 'Transaction Details', 'Amount']]
     running_amount = 0
-    t_line = 0     
+    t_line = 0
+
+    print(f"-------------------------------------------------")
+    print('WARNING: There are no balance checks for this converter. Please manually review the output(s).')
+    print(f"-------------------------------------------------")     
               
     for page in doc:
         remove_annots(page)
@@ -312,13 +316,82 @@ def get_transactions_acc(pdf_path: str):
     else:
         raise (ValueError(f"Running balance and difference between total credits and total debits do not match: {running_balance}, {diff_amount}"))
 
-    return comb_data_clean
+    return comb_data_clean       
+            
+"""
+Get the transactions for Westpac Business One Plus statement of recent transactions
+"""
+def get_transactions_recent(pdf_path: str):
+    doc = check_page_rotation(pdf_path)    
+    
+    text = ''
+    
+    for page_number in range(doc.page_count):
+        page = doc[page_number]
+        remove_annots(page)
+        text += page.get_text() + "\n"
+        
+    lines = text.split('\n')        
+    
+    # Date format of pdf, and what is needed for QIF format
+    date_format = "%d %b %Y"
+    date_flag = False
+    dates = []
+    
+    transaction = ''
+    transactions = []
+    
+    amounts = []
+
+    print(f"-------------------------------------------------")
+    print('WARNING: There are no balance checks for this converter. Please manually review the output(s).')
+    print(f"-------------------------------------------------")
+
+    for line in lines:
+        if not line.strip():
+            continue
+        
+        # Checks whether line is a date using datetime function; also adds start of transaction name
+        elif is_datetime(line, date_format) and (not date_flag):
+            dates.append(reformat_date(line))
+            date_flag = True
+        
+        # Test for date flag first; if not find, skip
+        elif not date_flag:
+            continue
+        
+        # Test for transaction amounts
+        elif (line[0] == '$') or (line[1] == '$'):
+            amounts.append(str(line.replace('$', '').strip()))
+            transactions.append(transaction.strip())
+            date_flag = False
+            transaction = ''
+        
+        # If not any of the previous then add transaction lines
+        else:
+            transaction = transaction + ' ' + line.strip()
+
+    if (len(dates) == len(transactions)) and (len(transactions) == len(amounts)):
+        print(f"Number of transactions match: {len(dates)}")
+    else:
+        raise (ValueError(f"Length of transactions does not match: \n Dates: {len(dates)} \n \
+                            Transactions: {len(transactions)} \n Amounts: {len(amounts)}"))
+        
+    # Combine the data into a single array so it is easier to convert to csv
+    print(f"-------------------------------------------------")
+    comb_data = [['Date', 'Amount', 'Transaction Details']]
+    for i in range(len(dates)):
+        comb_data.append([dates[i], amounts[i], transactions[i]])
+
+    return comb_data
             
 def convert_wbc(pdf_path: str, account_type: str):
     if account_type == 'Transaction Search':
         data = get_transactions_search(pdf_path)
-    if account_type == 'Electronic Statement':
+    elif account_type == 'Electronic Statement':
         data = get_transactions_acc(pdf_path)
+    elif account_type == 'Statement of recent transactions':
+        data = get_transactions_recent(pdf_path)
     csv_name = (os.path.splitext(os.path.basename(pdf_path))[0] + '.csv')
     export_to_csv(data, (os.path.dirname(pdf_path) + '/' + csv_name))
     return csv_rename(pdf_path)
