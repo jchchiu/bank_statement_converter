@@ -197,7 +197,6 @@ def get_transactions(pdf_path: str):
 
     return comb_data_clean
 
-
 def convert_mqg(pdf_path: str):
     data = get_transactions(pdf_path)
     csv_name = (os.path.splitext(os.path.basename(pdf_path))[0] + '.csv')
