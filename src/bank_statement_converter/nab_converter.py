@@ -73,6 +73,39 @@ def diff_balances(doc):
     return (round(credits, 2), round(debits, 2), diff_amount, opening_balance, closing_balance)
 
 """
+Get x-values for NAB transactions account dynamically as changes with different statements
+"""
+def get_x_coords(doc):
+    page = doc[0]
+    remove_annots(page)
+    x_coords = []
+
+    # Find the top Y coord
+    y_0 = page.search_for("Transaction Details")[0].y0
+    # Find the bottom Y coord
+    y_1 = page.search_for("Important")[0].y0
+    
+    # Set the cropbox based on y-coords
+    page.set_cropbox(fitz.Rect(0.0,y_0,595.0,y_1))
+    
+    # Search for left of text as column delineator
+    x_coords.append(page.search_for("Date")[0].x0)
+    x_coords.append(page.search_for("Particulars")[0].x0)
+    x_coords.append(page.search_for("Debits")[0].x0)
+    credit_coords = page.search_for("Credits")[0]
+    x_coords.append(credit_coords.x0)
+    
+    # For Balance, use the '$' closest to the left from the x1 of Credits
+    balance_coords = page.search_for("$")
+    balance_x0s = set([x.x0 for x in balance_coords])
+    x_coords.append(min([x for x in balance_x0s if (x > credit_coords.x1)]))
+
+    # revert CropBox change
+    page.set_cropbox(page.mediabox)
+    
+    return x_coords
+     
+"""
 Get the transactions for Transaction Account
 """
 def get_transactions_acc(pdf_path: str):        
@@ -86,6 +119,8 @@ def get_transactions_acc(pdf_path: str):
     tot_credit = 0
     tot_debit = 0
     tot_running = 0
+    
+    x_coords = get_x_coords(doc)
               
     for page in doc:
         remove_annots(page)
@@ -102,7 +137,8 @@ def get_transactions_acc(pdf_path: str):
             p for p in paths if p["rect"].width > 80 and p["rect"].height > 1 and p["fill"]
         ]
         # the column coordinates are given ... by someone
-        x_values = set([20,80,360,410,505])
+        x_values = set(x_coords)
+        # NEED TO DYNAMICALLY FIND X_VALUES
 
         y_values = set()  # these need to be computed now
 
@@ -158,6 +194,9 @@ def get_transactions_acc(pdf_path: str):
                 if j == 1:
                     if text[-1] == '$':
                         text = text[:-1].strip()
+                    elif text[:27] == 'PLEASE NOTE FROM TODAY YOUR':
+                        comb_data[t_line+1].pop()
+                        break       
                     comb_data[t_line+1].append(text)
                     continue
                 if j == 2:
