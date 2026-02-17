@@ -193,7 +193,10 @@ def get_transactions_acc(pdf_path: str):
     tot_credit = 0
     tot_debit = 0
     tot_running = 0
-    closing_flag = False     
+    closing_flag = False  
+    
+    # To check page number for "CLOSING BALANCE"  
+    page_no = 0 
               
     for page in doc:
         remove_annots(page)
@@ -222,17 +225,25 @@ def get_transactions_acc(pdf_path: str):
             r = p["rect"]
             y_values.add(r.y0 + 2)  # top of shading
             y_values.add(r.y1 - 2)  # bottom of shading
-
+            
         # the page top and bottom needs to be added as y-coordinate as well
         # top transaction otherwise will not be found if first transaction is not shaded
         try:
-            r = page.search_for("CLOSING BALANCE")[1]  # Find footer line (Use second in list as search_for is not case sensitive)
-            y_values.add(r.y0 - 2) # add top of footer line
+            if page_no == 0:
+                r = page.search_for("CLOSING BALANCE", clip=fitz.INFINITE_RECT())[1]  # Find footer line (Use second in list as search_for is not case sensitive)
+            else:
+                r = page.search_for("CLOSING BALANCE", clip=fitz.INFINITE_RECT())[0]
+            y_values.add(r.y0 - 1) # add top of footer line
             y_values.add(r.y1 + 2)# add bottom of footer line as y-coord
         except:
-            y_values.add(760) # Add line just above "Statement No." at the bottom of the page just in case no CLOSING BALANCE
-        r2 = page.search_for("TRANSACTION DESCRIPTION")[0]
-        y_values.add(r2.y1)  # add bot of header line as y-coord
+            y_values.add(760) # Add line just above "Statement No." at the bottom of the page just in case no CLOSING BALANCE        
+        page_no += 1
+        
+        try:
+            r2 = page.search_for("TRANSACTION DESCRIPTION")[0]
+            y_values.add(r2.y1)  # add bot of header line as y-coord
+        except:
+            break
 
         # x- and y-coordinates are now extracted, do further clean-up
         x_values = sorted(list(x_values))
