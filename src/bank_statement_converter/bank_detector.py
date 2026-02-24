@@ -16,7 +16,8 @@ BANK_KEYWORDS = {
     'wbc': ['ABN 33 007 457 141',
             'Transaction Search',            # Westpac Business One Plus Transaction Search
             'Electronic Statement',          # Westpac Business One Account
-            'Statement of recent transactions'],   # Westpac Business One Statement of Recent Transactions
+            'Statement of recent transactions', # Westpac Business One Statement of Recent Transactions
+            'Transactions report'],          # Westpac Business One Transactions Report
     'ben': ['Bendigo and Adelaide Bank Limited ABN 11 068 049 178 AFSL/Australian Credit Licence 237879',
             'Business Basic Account'],       # Bendigo Business Basic Account
     'zel': ['ABN 14 649 001 383 AFSL 534281',
