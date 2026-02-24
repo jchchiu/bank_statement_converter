@@ -403,6 +403,8 @@ def convert_wbc(pdf_path: str, account_type: str):
         data = get_transactions_acc(pdf_path)
     elif account_type == 'Statement of recent transactions':
         data = get_transactions_recent(pdf_path)
+    elif account_type == 'Transactions report':
+        data = get_transactions_recent(pdf_path)
     csv_name = (os.path.splitext(os.path.basename(pdf_path))[0] + '.csv')
     export_to_csv(data, (os.path.dirname(pdf_path) + '/' + csv_name))
     return csv_rename(pdf_path)
