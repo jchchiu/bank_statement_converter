@@ -2,7 +2,7 @@ from setuptools import setup, find_packages
 
 setup(
     name = 'bank_statement_converter',
-    version = '0.3.2',
+    version = '0.3.3',
     package_dir = {'':'src'},
     packages = find_packages('src'),
     install_requires = [
