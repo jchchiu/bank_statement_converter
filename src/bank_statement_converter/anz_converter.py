@@ -11,7 +11,7 @@ def get_transactions(pdf_path: str):
     comb_data = [['Date', 'Transaction Details', 'Amount']]
     running_balance = 0
     t_line = 0
-    years = ['2023', '2024', '2025']
+    years = ['2023', '2024', '2025', '2026']
     year = ''
     opening_flag = True
     closing_flag = False
