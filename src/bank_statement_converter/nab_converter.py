@@ -69,13 +69,17 @@ def diff_balances(doc):
             debits = -round(float(line[1:].replace(',', '').strip()), 2)
             print(f"Obtained total debits: ${debits}")
             diff_amount = round(debits + credits, 2)
+            
+    # For transaction listings without opening/closing balances        
+    if credits == None:
+        return None
     
     return (round(credits, 2), round(debits, 2), diff_amount, opening_balance, closing_balance)
 
 """
 Get x-values for NAB transactions account dynamically as changes with different statements
 """
-def get_x_coords(doc):
+def get_x_coords(doc, amnt_check):
     page = doc[0]
     remove_annots(page)
     x_coords = []
@@ -90,16 +94,29 @@ def get_x_coords(doc):
     
     # Search for left of text as column delineator
     x_coords.append(page.search_for("Date")[0].x0)
-    x_coords.append(page.search_for("Particulars")[0].x0)
-    x_coords.append(page.search_for("Debits")[0].x0)
+    debit_coords = page.search_for("Debits")[0]
     credit_coords = page.search_for("Credits")[0]
-    x_coords.append(credit_coords.x0)
     
-    # For Balance, use the '$' closest to the left from the x1 of Credits
-    balance_coords = page.search_for("$")
-    balance_x0s = set([x.x0 for x in balance_coords])
-    x_coords.append(min([x for x in balance_x0s if (x > credit_coords.x1)]))
+    # For transactions with balance get the left
+    if amnt_check is not None:
+        x_coords.append(page.search_for("Particulars")[0].x0)
+        x_coords.append(debit_coords.x0)
+        x_coords.append(credit_coords.x0)
+        # For Balance, use the '$' closest to the left from the x1 of Credits
+        balance_coords = page.search_for("$")
+        balance_x0s = set([x.x0 for x in balance_coords])
+        x_coords.append(min([x for x in balance_x0s if (x > credit_coords.x1)]))
 
+    # For without balance get the left of dates/details
+    # For debit/credit get the right
+    else:
+        x_coords.append(page.search_for("Details")[0].x0)
+        balance_coords = page.search_for("$")
+        balance_x0s = set([x.x0 for x in balance_coords])
+        x_coords.append(min(balance_x0s))
+        x_coords.append(debit_coords.x1)
+        x_coords.append(credit_coords.x1)
+        
     # revert CropBox change
     page.set_cropbox(page.mediabox)
     
@@ -112,7 +129,8 @@ def get_transactions_acc(pdf_path: str):
     doc = check_page_rotation(pdf_path)
     
     amnt_checks = diff_balances(doc)
-    init_credits, init_debits, diff_amount = amnt_checks[0], amnt_checks[1], amnt_checks[2]
+    if amnt_checks is not None:
+        init_credits, init_debits, diff_amount = amnt_checks[0], amnt_checks[1], amnt_checks[2]
     
     comb_data = [['Date', 'Transaction Details', 'Amount']]
     t_line = 0     
@@ -120,8 +138,8 @@ def get_transactions_acc(pdf_path: str):
     tot_debit = 0
     tot_running = 0
     
-    x_coords = get_x_coords(doc)
-              
+    x_coords = get_x_coords(doc, amnt_checks)
+                  
     for page in doc:
         remove_annots(page)
         # To skip empty pages
@@ -153,16 +171,25 @@ def get_transactions_acc(pdf_path: str):
         # the page top and bottom needs to be added as y-coordinate as well
         # top transaction otherwise will not be found if first transaction is not shaded
         r = page.search_for("Important")[0]  # do not include footer line
-        r2 = page.search_for("Transaction Details")[0] # do not include header line
         y_values.add(round(r.y0 - 5))  # add top of footer line as y-coord
-        y_values.add(round(r2.y0 + 30))  # add top of header line as y-coord
+        
+        # In one version of statements there is no transaction details after first page
+        try:
+            r2 = page.search_for("Transaction Details")[0] # do not include header line
+        except:
+            r2 = page.search_for("Page")[0] # do not include header line
+        
+        if amnt_checks is None:
+            y_values.add(round(r2.y0 + 10))  # add top of header line as y-coord
+        else:
+            y_values.add(round(r2.y0 + 30))  # add top of header line as y-coord
 
         # x- and y-coordinates are now extracted, do further clean-up
         x_values = sorted(list(x_values))
         x_values = clean_up_values(x_values)
         y_values = sorted(list(y_values))
         y_values = clean_up_values(y_values)
-
+        
         cells = []  # will be container for table cells
 
         # Create all table cells as PyMuPDF rectangles.
@@ -209,6 +236,21 @@ def get_transactions_acc(pdf_path: str):
                     continue
                 if j == 3:
                     if text:
+                        if amnt_checks is None:
+                            amount_str = str(text.replace(',', '').replace('$', '').strip())
+                            comb_data[t_line+1].append('-' + amount_str)
+                            tot_running -= float(amount_str)
+                            tot_debit -= float(amount_str)
+                            break
+                        else:
+                            amount_str = str(text.replace(',', '').replace('$', '').strip())
+                            comb_data[t_line+1].append(amount_str)
+                            tot_running += float(amount_str)
+                            tot_credit += float(amount_str)
+                            break
+                    continue
+                if (j == 4) and (amnt_checks is None):
+                    if text:
                         amount_str = str(text.replace(',', '').replace('$', '').strip())
                         comb_data[t_line+1].append(amount_str)
                         tot_running += float(amount_str)
@@ -222,13 +264,16 @@ def get_transactions_acc(pdf_path: str):
     print(f"Calculated total credits: ${round(tot_credit, 2)}")
     print(f"Calculated total debits: ${round(tot_debit, 2)}")
     print(f"Calculated difference between opening and closing balance: ${round(tot_running, 2)}")
-                
-    if (round(tot_running, 2) == diff_amount) and (round(tot_credit, 2) == init_credits) and (round(tot_debit, 2) == init_debits):
-        print('Running amount and difference between total credits and total debits same.')
-        print(f"-------------------------------------------------")
+    
+    if amnt_checks is not None:        
+        if (round(tot_running, 2) == diff_amount) and (round(tot_credit, 2) == init_credits) and (round(tot_debit, 2) == init_debits):
+            print('Running amount and difference between total credits and total debits same.')
+            print(f"-------------------------------------------------")
+        else:
+            raise (ValueError(f"Running amount and difference between total credits and total debits do not match: {tot_running}, {diff_amount}"))
     else:
-        raise (ValueError(f"Running amount and difference between total credits and total debits do not match: {tot_running}, {diff_amount}"))
-
+        print("IMPORTANT: Please note that there are no checks for this conversion; please check manually if necessary.")
+        
     return comb_data_clean
 
 """
