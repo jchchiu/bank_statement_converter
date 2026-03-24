@@ -49,6 +49,7 @@ If you only have PDF statements available from one of the major Australian bank,
 | **Westpac (WBC)**   | Business One Account                                                           | Running balance check on every transaction and final difference between opening & closing balance/total credit/total debit/closing balance verification   |
 | **Westpac (WBC)**   | Business One Plus (Transaction Search)                                         | No running-balance checks (See [Notes](#notes)) |
 | **Westpac (WBC)**   | Business One Plus (Statement of Recent Transactions)                           | No running-balance checks (See [Notes](#notes)) |
+| **Westpac (WBC)**   | Business One Plus (Transactions Report)                           | No running-balance checks (See [Notes](#notes)) |
 | **Zeller (ZEL)**    | Transaction Account Statement                                                  | Final difference between opening & closing balance/total credit/total debit/closing balance verification        |
 
 ---
@@ -201,3 +202,4 @@ The generated executable will be in `dist/bstc-gui.exe`.
 - Add drag and drop for file and folders
 - ~~Add Westpac Business One statement (Different from Westpac Buiness One Plus Transaction Search print)~~
 - Try implementing quicker algorithm for wbc
+- WBC Transactions report has info for balance checks - ** IMPLEMENT ASAP**
