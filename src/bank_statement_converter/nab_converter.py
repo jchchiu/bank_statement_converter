@@ -30,7 +30,7 @@ def diff_balances(doc):
     for line in lines:
         if not line.strip():
             continue
-        if (line == 'Opening Balance') or (line == 'Opening balance'):
+        if (line == 'Opening Balance') or (line == 'Opening balance') or (line == 'Start Balance'):
             balance_flag = True
             continue
         if balance_flag == True:
@@ -41,7 +41,7 @@ def diff_balances(doc):
             print(f"Obtained opening balance: ${opening_balance}")
             balance_flag = False
             continue
-        if (line == 'Closing Balance') or (line == 'Closing balance'):
+        if (line == 'Closing Balance') or (line == 'Closing balance') or (line == 'End Balance'):
             closing_flag = True
             continue
         if closing_flag == True:
