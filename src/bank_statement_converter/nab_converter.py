@@ -119,7 +119,7 @@ def get_x_coords(doc, amnt_check):
             x_coords.append(debit_coords.x1)
             x_coords.append(credit_coords.x1)
             x_coords.append(page.search_for("Balance")[0].x1)
-
+       
     # For without balance get the left of dates/details
     # For debit/credit get the right
     else:
@@ -185,8 +185,8 @@ def get_transactions_acc(pdf_path: str):
             r = p["rect"]
             x_values.add(r.x0)  # left of shading
             x_values.add(r.x1)  # right of shading
-            y_values.add(round(r.y0))  # top of shading
-            y_values.add(round(r.y1))  # bottom of shading
+            y_values.add(r.y0)  # top of shading
+            y_values.add(r.y1)  # bottom of shading
 
         # the page top and bottom needs to be added as y-coordinate as well
         # top transaction otherwise will not be found if first transaction is not shaded
@@ -213,9 +213,9 @@ def get_transactions_acc(pdf_path: str):
         # For statements where amnt_check but right indented
         # There is shading rectangle that create some x-values between our determined x values
         #  so we need to manually remove them
-        if amnt_checks and (not left_indentation):
+        if amnt_checks and (not left_indentation) and (len(x_values) > 6):
             x_values = [x for x in x_values if (x <= (details_col[0] + 5) or x >= (details_col[1] - 5))]
-        
+                
         cells = []  # will be container for table cells
 
         # Create all table cells as PyMuPDF rectangles.
