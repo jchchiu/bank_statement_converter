@@ -97,15 +97,28 @@ def get_x_coords(doc, amnt_check):
     debit_coords = page.search_for("Debits")[0]
     credit_coords = page.search_for("Credits")[0]
     
+    left_indentation = False
+    
     # For transactions with balance get the left
     if amnt_check is not None:
-        x_coords.append(page.search_for("Particulars")[0].x0)
-        x_coords.append(debit_coords.x0)
-        x_coords.append(credit_coords.x0)
-        # For Balance, use the '$' closest to the left from the x1 of Credits
-        balance_coords = page.search_for("$")
-        balance_x0s = set([x.x0 for x in balance_coords])
-        x_coords.append(min([x for x in balance_x0s if (x > credit_coords.x1)]))
+        try:
+            x_coords.append(page.search_for("Particulars")[0].x0)
+            x_coords.append(debit_coords.x0)
+            x_coords.append(credit_coords.x0)
+            # For Balance, use the '$' closest to the left from the x1 of Credits
+            balance_coords = page.search_for("$")
+            balance_x0s = set([x.x0 for x in balance_coords])
+            x_coords.append(min([x for x in balance_x0s if (x > credit_coords.x1)]))
+            left_indentation = True
+        except:
+            # Left of details, right of debits, right of credits, right of balance, min of $ debits
+            x_coords.append(page.search_for("Details")[0].x0)
+            balance_coords = page.search_for("$")
+            balance_x0s = set([x.x0 for x in balance_coords])
+            x_coords.append(min(balance_x0s))
+            x_coords.append(debit_coords.x1)
+            x_coords.append(credit_coords.x1)
+            x_coords.append(page.search_for("Balance")[0].x1)
 
     # For without balance get the left of dates/details
     # For debit/credit get the right
@@ -120,7 +133,7 @@ def get_x_coords(doc, amnt_check):
     # revert CropBox change
     page.set_cropbox(page.mediabox)
     
-    return x_coords
+    return (x_coords, left_indentation)
      
 """
 Get the transactions for Transaction Account
@@ -138,7 +151,10 @@ def get_transactions_acc(pdf_path: str):
     tot_debit = 0
     tot_running = 0
     
-    x_coords = get_x_coords(doc, amnt_checks)
+    dynamic_headers = get_x_coords(doc, amnt_checks)
+    x_coords, left_indentation = dynamic_headers[0], dynamic_headers[1]
+    
+    page_no = 0
                   
     for page in doc:
         remove_annots(page)
@@ -154,9 +170,13 @@ def get_transactions_acc(pdf_path: str):
         grids = [  # subselect shading rectangles
             p for p in paths if p["rect"].width > 80 and p["rect"].height > 1 and p["fill"]
         ]
+                
         # the column coordinates are given ... by someone
         x_values = set(x_coords)
         # NEED TO DYNAMICALLY FIND X_VALUES
+        
+        details_col = [sorted(x_values)[1], sorted(x_values)[2]]
+        #print(details_col)
 
         y_values = set()  # these need to be computed now
 
@@ -179,7 +199,7 @@ def get_transactions_acc(pdf_path: str):
         except:
             r2 = page.search_for("Page")[0] # do not include header line
         
-        if amnt_checks is None:
+        if (amnt_checks is None) or (not left_indentation):
             y_values.add(round(r2.y0 + 10))  # add top of header line as y-coord
         else:
             y_values.add(round(r2.y0 + 30))  # add top of header line as y-coord
@@ -189,6 +209,12 @@ def get_transactions_acc(pdf_path: str):
         x_values = clean_up_values(x_values)
         y_values = sorted(list(y_values))
         y_values = clean_up_values(y_values)
+        
+        # For statements where amnt_check but right indented
+        # There is shading rectangle that create some x-values between our determined x values
+        #  so we need to manually remove them
+        if amnt_checks and (not left_indentation):
+            x_values = [x for x in x_values if (x <= (details_col[0] + 5) or x >= (details_col[1] - 5))]
         
         cells = []  # will be container for table cells
 
