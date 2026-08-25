@@ -1,5 +1,6 @@
 import fitz
 import os.path
+import re
 from .utils import export_to_csv, is_datetime, reformat_date, csv_rename, remove_annots, check_page_rotation
 
 """
@@ -86,7 +87,18 @@ def get_transactions(pdf_path: str):
                     if 'Withdrawals ($)' in text:
                         continue
                     if text != 'blank':
+                        # Skip if there is no numbers
+                        if not any(char.isdigit() for char in text):
+                            continue
+                        
                         amount_str = str(text.replace(',', '').strip())
+                        
+                        non_numbers = re.findall(r'\D', amount_str)
+                        if non_numbers:
+                            print(f"Warning: Found text in withdrawals at line: {t_line}. Removing and continuing")
+                            # Only keep digits and .
+                            amount_str = re.sub(r'[^\d.]', '', amount_str)
+                                                        
                         comb_data[t_line+1].append('-' + amount_str)
                         running_balance -= float(amount_str)
                     continue
@@ -95,7 +107,17 @@ def get_transactions(pdf_path: str):
                     if 'Deposits ($)' in text:
                         continue
                     if text != 'blank':
+                        # Skip if there is no numbers
+                        if not any(char.isdigit() for char in text):
+                            continue
+                        
                         amount_str = str(text.replace(',', '').strip())
+                        
+                        non_numbers = re.findall(r'\D', amount_str)
+                        if non_numbers:
+                            print(f"Warning: Found text in deposits at line: {t_line}. Removing and continuing")
+                            amount_str = re.sub(r'[^\d.]', '', amount_str)
+                                                        
                         comb_data[t_line+1].append(amount_str)
                         running_balance += float(amount_str)
                     continue
