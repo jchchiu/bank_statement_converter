@@ -127,51 +127,58 @@ class FolderWorker(QObject):
                 raise RuntimeError("No PDFs found in folder")
 
             for pdf in pdfs:
-                self.log.emit(f"--- {os.path.basename(pdf)} ---")
-                bank_info = detect_bank(pdf)
-                bank = bank_info[0]
-                account_type = bank_info[1]
-                if not bank:
-                    self.log.emit("  ERROR: could not detect bank")
-                    continue
-                self.log.emit(f"  Detected bank: {bank.upper()}")
-                self.log.emit(f"  Detected account type: {account_type.upper()}")
+                try:
+                    self.log.emit(f"--- {os.path.basename(pdf)} ---")
+                    bank_info = detect_bank(pdf)
+                    bank = bank_info[0]
+                    account_type = bank_info[1]
+                    if not bank:
+                        self.log.emit("  ERROR: could not detect bank")
+                        continue
+                    self.log.emit(f"  Detected bank: {bank.upper()}")
+                    self.log.emit(f"  Detected account type: {account_type.upper()}")
 
-                if bank == 'cba':
-                    csv_path = convert_cba(pdf)
-                elif bank == 'nab':
-                    csv_path = convert_nab(pdf, account_type)
-                elif bank == 'anz':
-                    csv_path = convert_anz(pdf)
-                elif bank == 'wbc':
-                    csv_path = convert_wbc(pdf, account_type)
-                elif bank == 'ben':
-                    csv_path = convert_ben(pdf)
-                elif bank == 'zel':
-                    csv_path = convert_zel(pdf)
-                elif bank == 'mqg':
-                    csv_path = convert_mqg(pdf)
-                else:
-                    self.log.emit(f"  ERROR: no converter for '{bank}'")
-                    continue
+                    if bank == 'cba':
+                        csv_path = convert_cba(pdf)
+                    elif bank == 'nab':
+                        csv_path = convert_nab(pdf, account_type)
+                    elif bank == 'anz':
+                        csv_path = convert_anz(pdf)
+                    elif bank == 'wbc':
+                        csv_path = convert_wbc(pdf, account_type)
+                    elif bank == 'ben':
+                        csv_path = convert_ben(pdf)
+                    elif bank == 'zel':
+                        csv_path = convert_zel(pdf)
+                    elif bank == 'mqg':
+                        csv_path = convert_mqg(pdf)
+                    else:
+                        self.log.emit(f"  ERROR: no converter for '{bank}'")
+                        continue
 
-                self.log.emit(f"  → CSV: {csv_path}")
-                outputs.append(csv_path)
+                    self.log.emit(f"  → CSV: {csv_path}")
+                    outputs.append(csv_path)
 
-                if self.do_qif:
-                    self.log.emit("  Converting CSV → QIF…")
-                    qif_path = csv_to_qif(csv_path)
-                    self.log.emit(f"  → QIF: {qif_path}")
-                    outputs.append(qif_path)
+                    if self.do_qif:
+                        self.log.emit("  Converting CSV → QIF…")
+                        qif_path = csv_to_qif(csv_path)
+                        self.log.emit(f"  → QIF: {qif_path}")
+                        outputs.append(qif_path)
+                        
+                    if self.rm_csv:
+                        self.log.emit("  Removing CSV files…")
+                        os.remove(csv_path)
+                        outputs.remove(csv_path)
+                        
+                    self.log.emit(" ")
                     
-                if self.rm_csv:
-                    self.log.emit("  Removing CSV files…")
-                    os.remove(csv_path)
-                    outputs.remove(csv_path)
+                except Exception as e:
+                    self.log.emit(str(e))
+                    self.log.emit(f"<b>Error in file conversion: Skipping to next file.</b>")
+                    self.log.emit(" ")
                     
-                self.log.emit(" ")
-
             self.finished.emit(outputs)
+
         except Exception as e:
             self.error.emit(str(e))
         finally:
