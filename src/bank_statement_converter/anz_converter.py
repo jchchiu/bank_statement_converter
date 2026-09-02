@@ -16,6 +16,7 @@ def get_transactions(pdf_path: str):
     year = ''
     opening_flag = True
     closing_flag = False
+    closing_account_balance_flag = False
     end_flag = False
               
     for page in doc[1:]:
@@ -75,6 +76,9 @@ def get_transactions(pdf_path: str):
                     if text == 'OPENING BALANCE':
                         opening_flag = True
                         continue
+                    if text == 'CLOSING ACCOUNT BALANCE':
+                        closing_account_balance_flag = True
+                        continue
                     if text == 'TOTALS AT END OF PAGE':
                         break
                     if text == 'TOTALS AT END OF PERIOD':
@@ -87,13 +91,27 @@ def get_transactions(pdf_path: str):
                     if 'Withdrawals ($)' in text:
                         continue
                     if text != 'blank':
+                        # NEW CHECK FOR ANZ STATEMENTS FOR CLOSING ACCOUNT BALANCE
+                        if closing_account_balance_flag:
+                            closing_balance = round(float(text.replace(',', '').replace('$','').strip()), 2)
+                            print(f"Obtained closing balance: ${closing_balance}")
+                            print(f"-------------------------------------------------")
+                            if round(running_balance, 2) == closing_balance:
+                                print('Running balance and closing balance match.')
+                                print(f"-------------------------------------------------")
+                                end_flag = True
+                                break
+                            else:
+                                raise (ValueError(f"Running balance and closing balance do not match: {running_balance}, {closing_balance} \n \
+                                            Find at line: {t_line}"))  
+                                                          
                         # Skip if there is no numbers
                         if not any(char.isdigit() for char in text):
                             continue
                         
                         amount_str = str(text.replace(',', '').strip())
                         
-                        non_numbers = re.findall(r'\D', amount_str)
+                        non_numbers = re.findall(r'[^\d.]', amount_str)
                         if non_numbers:
                             print(f"Warning: Found text in withdrawals at line: {t_line}. Removing and continuing")
                             # Only keep digits and .
@@ -113,7 +131,7 @@ def get_transactions(pdf_path: str):
                         
                         amount_str = str(text.replace(',', '').strip())
                         
-                        non_numbers = re.findall(r'\D', amount_str)
+                        non_numbers = re.findall(r'[^\d.]', amount_str)
                         if non_numbers:
                             print(f"Warning: Found text in deposits at line: {t_line}. Removing and continuing")
                             amount_str = re.sub(r'[^\d.]', '', amount_str)
