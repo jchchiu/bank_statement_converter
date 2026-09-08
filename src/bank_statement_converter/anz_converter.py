@@ -94,6 +94,8 @@ def get_transactions(pdf_path: str):
                         # NEW CHECK FOR ANZ STATEMENTS FOR CLOSING ACCOUNT BALANCE
                         if closing_account_balance_flag:
                             closing_balance = round(float(text.replace(',', '').replace('$','').strip()), 2)
+                            # Remove date for closing account balance line
+                            comb_data[t_line+1].pop()
                             print(f"Obtained closing balance: ${closing_balance}")
                             print(f"-------------------------------------------------")
                             if round(running_balance, 2) == closing_balance:
