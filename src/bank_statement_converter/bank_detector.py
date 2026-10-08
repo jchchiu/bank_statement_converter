@@ -13,6 +13,8 @@ BANK_KEYWORDS = {
             'Transaction Account',           # Transaction Account
             'BUSINESS EVERYDAY AC',          # Business Everyday Account
             'BUSINESS CHEQUE ACCOUNT'],      # Business Cheque Account
+    'bom': ['Bank of Melbourne - A Division of Westpac',   # Need to put bom before wbc as bom statament has wbc abn
+            'Statement of Account'],
     'wbc': ['ABN 33 007 457 141',
             'Transaction Search',            # Westpac Business One Plus Transaction Search
             'Electronic Statement',          # Westpac Business One Account
